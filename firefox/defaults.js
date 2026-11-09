@@ -8,7 +8,7 @@ const P = {
 };
 
 // Por defecto: nivel Tranqui (duerme tras 10 min). unit/ytads/vq/listas no son parte de los niveles.
-const D = { on: true, ...P.tranqui, unit: 'm', ytads: true, vq: false, whitelist: [], sleepList: [], lang: 'system', theme: 'system' };
+const D = { on: true, ...P.tranqui, unit: 'm', ytads: true, lists: true, vq: false, whitelist: [], sleepList: [], lang: 'system', theme: 'system' };
 
 // Cambiá esto por tu repo de GitHub (usuario/repo). Mientras diga USUARIO no se chequea nada.
 const REPO = '011Xuca/hiber';

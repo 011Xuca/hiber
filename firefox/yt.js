@@ -22,8 +22,8 @@
     Object.defineProperty(window, 'ytInitialPlayerResponse', { configurable: true, get: () => init, set: (v) => { init = prune(v); } });
   } catch { /* otra extensión ya lo definió */ }
 
-  // 2) Plan B: si igual aparece un anuncio, lo silencia, lo adelanta al final y toca "Saltar".
-  let wasMuted = null, capped = '', stuck = 0;
+  // 2) Plan B: si igual aparece un anuncio, lo silencia, lo salta al final y toca "Saltar".
+  let wasMuted = null, capped = '', stuck = 0, last = -1;
   setInterval(() => {
     // Tope de calidad (480p): menos RAM, GPU y datos. Se fija una vez por video.
     const mp = document.documentElement.dataset.hiberVq === '1' && document.getElementById('movie_player');
@@ -31,13 +31,16 @@
     if (id && id !== capped) { capped = id; mp.setPlaybackQualityRange?.('tiny', 'large'); }
     const p = on() && document.querySelector('.html5-video-player.ad-showing');
     const v = document.querySelector('.html5-video-player video');
-    // Con el bloqueo puesto el video a veces queda cargando para siempre: si lleva ~2s trabado, lo adelanta 1s.
-    if (!p && on() && v && !v.paused && v.readyState < 3) { if (++stuck >= 8) { stuck = 0; v.currentTime += 1; } } else stuck = 0;
-    if (!p) { if (wasMuted !== null && v) { v.muted = wasMuted; v.playbackRate = 1; v.currentTime += 1; } wasMuted = null; return; }
+    // Cargar al arrancar es normal (readyState < 3 sin pausa): solo si lleva ~1s sin avanzar lo re-busca en el mismo segundo.
+    // Nunca adelanta: cada seek tira el buffer y antes eso trababa más y se comía segundos del inicio.
+    if (!p && on() && v && !v.paused && v.readyState < 3 && v.currentTime === last) { if (++stuck >= 4) { stuck = 0; v.currentTime = v.currentTime; v.play().catch(() => {}); } } else stuck = 0;
+    last = v ? v.currentTime : -1;
+    if (!p) { if (wasMuted !== null && v) { v.muted = wasMuted; v.playbackRate = 1; v.play().catch(() => {}); } wasMuted = null; return; }
     if (!v) return;
     if (wasMuted === null) wasMuted = v.muted;
     v.muted = true;
-    if (isFinite(v.duration) && v.duration > 0) { v.playbackRate = 16; v.currentTime = v.duration; }
+    // Sin playbackRate 16: si YouTube cambia al video real antes de quitar .ad-showing, el x16 se comía ~4s del inicio.
+    if (isFinite(v.duration) && v.duration > 0) v.currentTime = v.duration;
     document.querySelectorAll('.ytp-skip-ad-button,.ytp-ad-skip-button,.ytp-ad-skip-button-modern,.ytp-ad-skip-button-container button').forEach((b) => b.click());
   }, 250);
 })();

@@ -17,12 +17,14 @@ function apply() {
   // Duración 0 (no "none"): no se ve movimiento y los elementos no quedan ocultos a mitad de animación.
   if (s.on && s.motion) css += '*,*::before,*::after{animation-duration:0s!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:0s!important;transition-delay:0s!important;scroll-behavior:auto!important}';
   // Anuncios: lo que la red no alcanza a bloquear se oculta.
-  if (s.on && s.trackers) css += 'ins.adsbygoogle,[id^=google_ads],[id*=div-gpt-ad],iframe[src*="doubleclick.net"],iframe[src*="googlesyndication.com"],.adsbygoogle,.ad-banner,.adsbox,[data-ad-slot],[data-google-query-id]{display:none!important}';
+  if (s.on && s.trackers) css += 'ins.adsbygoogle,[id^=google_ads],[id*=div-gpt-ad],iframe[src*="doubleclick.net"],iframe[src*="googlesyndication.com"],.adsbygoogle,.ad-banner,[data-ad-slot],[data-google-query-id],a[href*="afu.php?zoneid="],iframe[src*="afu.php?zoneid="]{display:none!important}'; // sin .adsbox: es el cebo típico de los detectores de bloqueadores
+  // (enlaces/iframes con la firma de pop-unders: suelen ser la capa trampa misma)
   // YouTube: oculta lo que quede de anuncios (el grueso lo corta yt.js).
   const yt = /(^|\.)youtube\.com$/.test(location.hostname);
   if (s.on && s.ytads && yt) css += '#masthead-ad,#player-ads,.video-ads,.ytp-ad-module,.ytp-ad-overlay-container,ytd-ad-slot-renderer,ytd-in-feed-ad-layout-renderer,ytd-banner-promo-renderer,ytd-promoted-sparkles-web-renderer,ytd-display-ad-renderer,ytd-statement-banner-renderer,ytd-companion-slot-renderer,ytd-player-legacy-desktop-watch-ads-renderer,ytd-enforcement-message-view-model,tp-yt-paper-dialog:has(ytd-enforcement-message-view-model){display:none!important}';
   const h = document.documentElement;
   h.dataset.hiberYt = s.on && s.ytads ? '1' : '0';
+  h.dataset.hiberPop = s.on && s.trackers ? '1' : '0';
   h.dataset.hiberVq = s.on && s.vq ? '1' : '';
   h.dataset.hiberMotion = s.on && s.motion ? '1' : '';
   h.dataset.hiberMobile = s.on && s.mobile ? '1' : '';
@@ -40,13 +42,15 @@ const tweak = (n) => {
     if (!e.hasAttribute('loading')) e.loading = 'lazy'; // e.loading devuelve "auto" aunque falte el atributo
     e.decoding = 'async';
   }
+  // Anuncio disfrazado ("Sign in / verify you're human"): iframe con srcdoc de la plantilla de esa red (habla con la página por postMessage {$G$:1}).
+  if (st.trackers) for (const e of n.matches('iframe[srcdoc]') ? [n] : n.querySelectorAll?.('iframe[srcdoc]') || []) if (/[$]G[$]\s*:\s*1/.test(e.getAttribute('srcdoc'))) e.remove();
   if (st.preload) for (const e of n.matches(PRE) ? [n] : n.querySelectorAll?.(PRE) || []) e.remove();
 };
 function lazy() {
-  const on = st.on && (st.lazy || st.preload);
+  const on = st.on && (st.lazy || st.preload || st.trackers);
   if (on && !obs) {
-    obs = new MutationObserver((ms) => ms.forEach((m) => m.addedNodes.forEach(tweak)));
-    obs.observe(document, { childList: true, subtree: true });
+    obs = new MutationObserver((ms) => ms.forEach((m) => (m.type === 'attributes' ? tweak(m.target) : m.addedNodes.forEach(tweak))));
+    obs.observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ['srcdoc'] });
     tweak(document.documentElement);
   } else if (!on && obs) { obs.disconnect(); obs = null; }
 }

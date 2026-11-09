@@ -7,7 +7,8 @@ const TXT = {
     units: { s: 'segundos', m: 'minutos', h: 'horas' },
     never: 'Estos sitios nunca se duermen', always: 'Estos sitios siempre se duermen (aunque suenen)', wlHint: 'uno por línea, ej: youtube.com',
     lang: 'Idioma', theme: 'Tema', system: 'Sistema', light: 'Claro', dark: 'Oscuro',
-    social: 'Mis redes', donate: 'Donar en Ko-fi',
+    social: 'Mis redes', donate: 'Donar en Ko-fi', reload: 'Recargar extensión',
+    lstInfo: (n, d) => `${n} dominios, ${d}`,
     stats: (f, t, d) => `${f} de ${t} GB libres · ${d} pestañas dormidas`, statsNoMem: (d) => `${d} pestañas dormidas`,
     tipsTitle: (b, n) => `Tips para ${b} (${n})`, noTips: 'Ya tenés todo bien configurado.',
     levels: { tranqui: 'Ligero', normal: 'Equilibrado', afondo: 'Intensivo', celu: 'Móvil', mano: 'Personalizado' },
@@ -22,6 +23,7 @@ const TXT = {
       images: ['Sin imágenes', 'Las páginas cargan solo texto.'],
       mobile: ['Versión celu', 'Pide la web móvil, que suele ser más liviana.'],
       trackers: ['Bloquear anuncios', 'Corta publicidad y rastreadores, y oculta banners.'],
+      lists: ['Lista pública de anuncios', 'Suma miles de dominios de publicidad conocidos (lista de Peter Lowe). Se actualiza sola cada 3 días.'],
       ytads: ['Anuncios de YouTube', 'Los saca o los salta al instante. YouTube cambia seguido y puede fallar.'],
       vq: ['YouTube a 480p máx.', 'Usa menos RAM, GPU y datos. Baja la nitidez.'],
     },
@@ -34,7 +36,8 @@ const TXT = {
     units: { s: 'seconds', m: 'minutes', h: 'hours' },
     never: 'These sites never sleep', always: 'These sites always sleep (even with sound)', wlHint: 'one per line, e.g. youtube.com',
     lang: 'Language', theme: 'Theme', system: 'System', light: 'Light', dark: 'Dark',
-    social: 'My socials', donate: 'Donate on Ko-fi',
+    social: 'My socials', donate: 'Donate on Ko-fi', reload: 'Reload extension',
+    lstInfo: (n, d) => `${n} domains, ${d}`,
     stats: (f, t, d) => `${f} of ${t} GB free · ${d} sleeping tabs`, statsNoMem: (d) => `${d} sleeping tabs`,
     tipsTitle: (b, n) => `Tips for ${b} (${n})`, noTips: 'Everything is already set up well.',
     levels: { tranqui: 'Light', normal: 'Balanced', afondo: 'Intensive', celu: 'Mobile', mano: 'Custom' },
@@ -49,12 +52,13 @@ const TXT = {
       images: ['No images', 'Pages load text only.'],
       mobile: ['Phone version', 'Asks for the mobile site, usually lighter.'],
       trackers: ['Block ads', 'Cuts ads and trackers, and hides banners.'],
+      lists: ['Public ad list', 'Adds thousands of known ad domains (Peter Lowe list). Updates itself every 3 days.'],
       ytads: ['YouTube ads', 'Removes them or skips them instantly. YouTube changes often and this can break.'],
       vq: ['YouTube 480p max', 'Uses less RAM, GPU and data. Lowers sharpness.'],
     },
   },
 };
-const GROUPS = { sleep: ['discard'], speed: ['motion', 'cpu', 'lazy', 'preload', 'bgvideo', 'fonts', 'images', 'mobile', 'vq'], ads: ['trackers', 'ytads'] };
+const GROUPS = { sleep: ['discard'], speed: ['motion', 'cpu', 'lazy', 'preload', 'bgvideo', 'fonts', 'images', 'mobile', 'vq'], ads: ['trackers', 'lists', 'ytads'] };
 
 // Tips: [¿aplica con esta config?, es, en]. Solo aparecen los que todavía no aprovechás.
 const COMMON = [
@@ -100,7 +104,7 @@ const BROWSER_TIPS = {
 
 const $ = (id) => document.getElementById(id);
 const U = { s: 1, m: 60, h: 3600 };
-let s, L, browser = 'chrome';
+let s, L, browser = 'chrome', lstN = 0, lstT = 0;
 const BROWSER_NAME = { chrome: 'Chrome / Chromium', edge: 'Edge', brave: 'Brave', opera: 'Opera / Opera GX', firefox: 'Firefox' };
 
 const save = () => chrome.storage.local.set({ s });
@@ -130,12 +134,13 @@ function render() {
   else document.documentElement.dataset.theme = s.theme;
 
   document.querySelectorAll('[data-t]').forEach((e) => { e.textContent = L[e.dataset.t]; });
+  $('reload').onclick = (e) => { e.preventDefault(); chrome.runtime.reload(); };
   document.querySelectorAll('[data-ph]').forEach((e) => { e.placeholder = L[e.dataset.ph]; });
   const cur = current();
   $('levels').innerHTML = Object.entries(L.levels)
     .map(([k, t]) => `<button data-l="${k}" class="${k === cur ? 'on' : ''}">${t}</button>`).join('');
   for (const [g, keys] of Object.entries(GROUPS)) {
-    $('g_' + g).innerHTML = keys.map((k) => { const [t, d] = L.toggles[k];
+    $('g_' + g).innerHTML = keys.map((k) => { const [t, d0] = L.toggles[k], d = k === 'lists' && lstN ? `${d0} (${L.lstInfo(lstN, new Date(lstT).toLocaleDateString())})` : d0;
       return `<label class="row"><span><b>${t}</b><small>${d}</small></span><input type="checkbox" data-k="${k}" ${s[k] ? 'checked' : ''}></label>`; }).join('');
   }
   $('on').checked = s.on;
@@ -184,8 +189,9 @@ $('sl').onchange = (e) => { s.sleepList = lines(e.target.value); save(); };
 $('lang').onchange = (e) => { s.lang = e.target.value; save(); render(); };
 $('theme').onchange = (e) => { s.theme = e.target.value; save(); render(); };
 
-Promise.all([chrome.storage.local.get(['s', 'upd']), detect()]).then(([r, b]) => {
+Promise.all([chrome.storage.local.get(['s', 'upd', 'lstN', 'lstT']), detect()]).then(([r, b]) => {
   browser = b;
+  lstN = r.lstN || 0; lstT = r.lstT || 0;
   s = { ...D, ...r.s };
   render();
   if (r.upd && newer(r.upd, chrome.runtime.getManifest().version)) {
