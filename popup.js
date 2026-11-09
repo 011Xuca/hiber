@@ -1,17 +1,16 @@
 const TXT = {
   es: {
     upd: (v) => `Hay una versión nueva (${v}). Descargala acá`,
-    active: 'activa', tag: 'Duerme lo que no usás y recorta lo que pesa.',
+    active: 'Activa', tag: 'Duerme lo que no usás y recorta lo que pesa.',
     gSleep: 'Dormir pestañas', gSpeed: 'Rendimiento', gAds: 'Anuncios', gSites: 'Sitios',
     sleepAfter: 'Dormir tras', timeHint: 'Elegí el tiempo que quieras (mínimo 10 segundos). Se revisa cada ~30 s.',
     units: { s: 'segundos', m: 'minutos', h: 'horas' },
     never: 'Estos sitios nunca se duermen', always: 'Estos sitios siempre se duermen (aunque suenen)', wlHint: 'uno por línea, ej: youtube.com',
     lang: 'Idioma', theme: 'Tema', system: 'Sistema', light: 'Claro', dark: 'Oscuro',
     social: 'Mis redes', donate: 'Donar en Ko-fi',
-    sweep: 'Dormir las demás ahora', sweeping: 'Durmiendo…', swept: (n) => `Listo, ${n} a dormir`, none: 'No había nada para dormir',
     stats: (f, t, d) => `${f} de ${t} GB libres · ${d} pestañas dormidas`, statsNoMem: (d) => `${d} pestañas dormidas`,
     tipsTitle: (b, n) => `Tips para ${b} (${n})`, noTips: 'Ya tenés todo bien configurado.',
-    levels: { tranqui: 'Tranqui', normal: 'Normal', afondo: 'A fondo', celu: 'Celu', mano: 'A mano' },
+    levels: { tranqui: 'Ligero', normal: 'Equilibrado', afondo: 'Intensivo', celu: 'Móvil', mano: 'Personalizado' },
     toggles: {
       discard: ['Dormir pestañas', 'Se duermen si no suenan ni reproducen. Recargan al hacerles clic.'],
       cpu: ['Menos efectos', 'Saca sombras, transparencias y filtros.'],
@@ -29,17 +28,16 @@ const TXT = {
   },
   en: {
     upd: (v) => `New version available (${v}). Download it here`,
-    active: 'on', tag: 'Sleeps what you don\'t use and trims what\'s heavy.',
+    active: 'On', tag: 'Sleeps what you don\'t use and trims what\'s heavy.',
     gSleep: 'Sleep tabs', gSpeed: 'Performance', gAds: 'Ads', gSites: 'Sites',
     sleepAfter: 'Sleep after', timeHint: 'Pick any time you like (10 seconds minimum). Checked every ~30 s.',
     units: { s: 'seconds', m: 'minutes', h: 'hours' },
     never: 'These sites never sleep', always: 'These sites always sleep (even with sound)', wlHint: 'one per line, e.g. youtube.com',
     lang: 'Language', theme: 'Theme', system: 'System', light: 'Light', dark: 'Dark',
     social: 'My socials', donate: 'Donate on Ko-fi',
-    sweep: 'Sleep the others now', sweeping: 'Sleeping…', swept: (n) => `Done, ${n} put to sleep`, none: 'Nothing to sleep',
     stats: (f, t, d) => `${f} of ${t} GB free · ${d} sleeping tabs`, statsNoMem: (d) => `${d} sleeping tabs`,
     tipsTitle: (b, n) => `Tips for ${b} (${n})`, noTips: 'Everything is already set up well.',
-    levels: { tranqui: 'Chill', normal: 'Normal', afondo: 'Full', celu: 'Phone', mano: 'Custom' },
+    levels: { tranqui: 'Light', normal: 'Balanced', afondo: 'Intensive', celu: 'Mobile', mano: 'Custom' },
     toggles: {
       discard: ['Sleep tabs', 'Sleep when silent and not playing. Reload when clicked.'],
       cpu: ['Fewer effects', 'Removes shadows, transparency and filters.'],
@@ -147,7 +145,6 @@ function render() {
   $('sl').value = s.sleepList.join('\n');
   opts('lang', [['system', L.system], ['es', 'Español'], ['en', 'English']], s.lang);
   opts('theme', [['system', L.system], ['light', L.light], ['dark', L.dark]], s.theme);
-  $('sweep').textContent = L.sweep;
   tips(lang === 'es' ? 1 : 2);
   stats();
 }
@@ -186,12 +183,6 @@ $('wl').onchange = (e) => { s.whitelist = lines(e.target.value); save(); };
 $('sl').onchange = (e) => { s.sleepList = lines(e.target.value); save(); };
 $('lang').onchange = (e) => { s.lang = e.target.value; save(); render(); };
 $('theme').onchange = (e) => { s.theme = e.target.value; save(); render(); };
-$('sweep').onclick = async () => {
-  $('sweep').textContent = L.sweeping;
-  const n = await chrome.runtime.sendMessage('sweep');
-  $('sweep').textContent = n ? L.swept(n) : L.none;
-  stats();
-};
 
 Promise.all([chrome.storage.local.get(['s', 'upd']), detect()]).then(([r, b]) => {
   browser = b;

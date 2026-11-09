@@ -8,7 +8,7 @@
   @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#07131c;--card:#0d2030;--fg:#e4f3fc;--mut:#8db0c5;--line:#1c3648;--ac:#38bdf8;--act:#7dd3fc;--on:#04202e;--glow:#12425e;color-scheme:dark}}
   :root[data-theme=dark]{--bg:#07131c;--card:#0d2030;--fg:#e4f3fc;--mut:#8db0c5;--line:#1c3648;--ac:#38bdf8;--act:#7dd3fc;--on:#04202e;--glow:#12425e;color-scheme:dark}
   *{box-sizing:border-box}
-  body{margin:0;width:370px;padding:16px 14px 14px;background:radial-gradient(120% 60% at 0 0,var(--glow),var(--bg) 60%) var(--bg);color:var(--fg);font:13.5px/1.4 var(--f)}
+  body{margin:0;width:370px;padding:16px 14px 14px;background:var(--bg);color:var(--fg);font:13.5px/1.4 var(--f)}
   header{display:flex;align-items:center;gap:10px}
   header img{width:38px;height:38px;border-radius:10px;display:block}
   h1{font-size:23px;font-weight:700;margin:0;letter-spacing:-.02em;line-height:1;flex:1;color:var(--act)}
@@ -43,7 +43,7 @@
   .pref select{width:100%;margin-top:3px}
   option{background:var(--card)}
   #tipsBody p{margin:0;padding:7px 0;border-top:1px solid var(--line);font-size:12.5px}
-  .go{width:100%;padding:11px;border:0;border-radius:12px;background:linear-gradient(135deg,#7dd3fc,#38bdf8);color:var(--on);font:700 13.5px var(--f);cursor:pointer}
+  .go{width:100%;padding:11px;border:0;border-radius:12px;background:var(--ac);color:var(--on);font:700 13.5px var(--f);cursor:pointer}
   .alt{margin-top:8px;width:100%;padding:9px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--act);font:600 12.5px var(--f);cursor:pointer}
   .alt[hidden]{display:none}
   a.alt{display:block;box-sizing:border-box;text-align:center;text-decoration:none}
@@ -84,7 +84,6 @@
   <label><span data-t="lang"></span><select id="lang"></select></label>
   <label><span data-t="theme"></span><select id="theme"></select></label>
 </section>
-<button class="go" id="sweep"></button>
 <script src="defaults.js"></script>
 <script src="popup.js"></script>
 </body>

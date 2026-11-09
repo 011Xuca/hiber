@@ -1,13 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#07182e"/><stop offset=".6" stop-color="#0e5a96"/><stop offset="1" stop-color="#38bdf8"/>
-    </linearGradient>
-    <linearGradient id="mn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e0f7ff"/><stop offset="1" stop-color="#7dd3fc"/></linearGradient>
-    <mask id="cut"><rect width="128" height="128" fill="#fff"/><circle cx="76" cy="49" r="35" fill="#000"/></mask>
-  </defs>
-  <rect width="128" height="128" rx="29" fill="url(#bg)"/>
-  <circle cx="61" cy="59" r="38" fill="url(#mn)" mask="url(#cut)"/>
-  <path d="M93 70l4.6 11.4L109 86l-11.4 4.6L93 102l-4.6-11.4L77 86l11.4-4.6z" fill="#f0fbff"/>
-  <path d="M106 58l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#bae6fd"/>
+  <defs><mask id="cut"><rect width="128" height="128" fill="#fff"/><circle cx="74" cy="50" r="27" fill="#000"/></mask></defs>
+  <rect x="3" y="3" width="122" height="122" rx="32" fill="#22d3ee"/>
+  <rect x="10" y="10" width="108" height="108" rx="26" fill="#14161b"/>
+  <circle cx="58" cy="64" r="30" fill="#22d3ee" mask="url(#cut)"/>
+  <path d="M90 74l4 10 10 4-10 4-4 10-4-10-10-4 10-4z" fill="#22d3ee"/>
 </svg>
