@@ -48,6 +48,10 @@ python build-zips.py
 Corre `build-firefox.js` y deja `dist/hiber-chrome-<versión>.zip`, `-edge`, `-opera` y `-firefox`.
 La versión sale de `version.txt`: subila también a GitHub (rama `main`) para que el aviso de actualización coincida.
 
+Los zips se suben al **release** de GitHub (`hiber-<navegador>-<versión>.zip`, con ese nombre exacto). La página
+de Hiber en `011xuca.github.io` y el botón Descargar de Xuca Optimizer buscan el último release y bajan solos el zip
+que corresponde al navegador del usuario (Chrome/Brave/Vivaldi → chrome, Edge, Opera, Firefox).
+
 ## Qué cambia según el navegador
 
 - Firefox no expone la memoria libre (el popup solo muestra pestañas dormidas) ni puede abrir sus ajustes desde la extensión.
