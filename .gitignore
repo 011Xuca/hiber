@@ -5,4 +5,4 @@
 logs/
 
 # Configuracion de Claude Code
-.claude/firefox/
+.claude

@@ -2,3 +2,4 @@
 {"event": "session_start", "ts": 1794180504, "session_id": "fb9b7f7a-5dc1-43c6-984a-0d075dcf5f68", "source": "startup"}
 {"event": "session_start", "ts": 1794182029, "session_id": "6fb3c157-8b62-4752-a48a-821f736187db", "source": "startup"}
 {"ts": 1794182360, "delegation_id": "38c7d4181f98", "session_id": "6fb3c157-8b62-4752-a48a-821f736187db", "tool_name": "Agent", "subagent_type": "gearbox:architect", "is_named_tier": true, "fallback": false, "model": "opus", "prompt_head": "ultrathink. Proyecto: extensiÃ³n de navegador MV3 \"Hiber\" en C:\\Users\\xucap\\OneDrive\\Documents\\git-projects\\hiber (archivos: manifest.json, background.js, content.js, main.js, yt.js, defaults.js, popu", "cwd": "C:\\Users\\xucap\\OneDrive\\Documents\\git-projects\\hiber", "cost_source": "unavailable"}
+{"event": "session_start", "ts": 1794191875, "session_id": "b36b1243-b338-46a7-932e-098467d1bf5e", "source": "startup"}
