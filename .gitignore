@@ -6,3 +6,5 @@ logs/
 
 # Configuracion de Claude Code
 .claude/
+# Paquetes para las tiendas
+dist/
