@@ -23,7 +23,3 @@ Safari no está soportado.
 
 `yt.js` quita los datos de anuncios del reproductor y, si igual aparece uno, lo silencia, lo adelanta y toca "Saltar".
 YouTube cambia su código seguido, así que puede dejar de andar: ahí hay que ajustar `yt.js`.
-
-## Logo
-
-`logo.svg` es la fuente. `python make-icons.py` regenera `icons/*.png` (necesita Pillow).
