@@ -28,7 +28,9 @@ const TXT = {
       mobile: ['Versión celu', 'Pide la web móvil, que suele ser más liviana.'],
       trackers: ['Bloquear anuncios', 'Corta publicidad y rastreadores, y oculta banners.'],
       lists: ['Lista pública de anuncios', 'Suma miles de dominios de publicidad conocidos (lista de Peter Lowe). Se actualiza sola cada 3 días.'],
-      ytads: ['Anuncios de YouTube y Twitch', 'Los saca o los salta al instante. YouTube cambia seguido y puede fallar.'],
+      ytads: ['Anuncios de YouTube', 'Corta el anuncio al empezar el video; si no puede, va silenciado y a x2. YouTube cambia seguido y puede fallar.'],
+      twads: ['Anuncios de Twitch', 'Silencia el anuncio mientras dura y saca los de la portada. En los canales no se pueden quitar con calidad completa.'],
+      tw360: ['Twitch en 360p sin anuncios', 'Necesita "Anuncios de Twitch". Pide todos los directos en 360p, que vienen sin anuncios. Pierde calidad en todos los canales.'],
       vqa: ['YouTube: calidad automática', 'Fija la calidad más alta que aprovecha tu pantalla y tu red (red floja: solo la usa de tope).'],
       vq: ['YouTube a 480p máx.', 'Usa menos RAM, GPU y datos. Baja la nitidez.'],
     },
@@ -62,13 +64,15 @@ const TXT = {
       mobile: ['Phone version', 'Asks for the mobile site, usually lighter.'],
       trackers: ['Block ads', 'Cuts ads and trackers, and hides banners.'],
       lists: ['Public ad list', 'Adds thousands of known ad domains (Peter Lowe list). Updates itself every 3 days.'],
-      ytads: ['YouTube and Twitch ads', 'Removes them or skips them instantly. YouTube changes often and this can break.'],
+      ytads: ['YouTube ads', 'Cuts the ad when the video starts; if it cannot, it plays muted at 2x. YouTube changes often and this can break.'],
+      twads: ['Twitch ads', 'Mutes the ad while it lasts and removes the ones on the home page. On channels they cannot be removed at full quality.'],
+      tw360: ['Twitch 360p without ads', 'Needs "Twitch ads". Requests every stream at 360p, which comes without ads. Lowers quality on every channel.'],
       vqa: ['YouTube: auto quality', 'Sets the highest quality your screen and network can use (weak network: only as a cap).'],
       vq: ['YouTube 480p max', 'Uses less RAM, GPU and data. Lowers sharpness.'],
     },
   },
 };
-const GROUPS = { sleep: ['discard'], guard: ['gramOn', 'gcpuOn', 'ghard'], speed: ['pip', 'motion', 'cpu', 'lazy', 'preload', 'bgvideo', 'fonts', 'images', 'mobile', 'vqa', 'vq'], ads: ['trackers', 'lists', 'ytads'] };
+const GROUPS = { sleep: ['discard'], guard: ['gramOn', 'gcpuOn', 'ghard'], speed: ['pip', 'motion', 'cpu', 'lazy', 'preload', 'bgvideo', 'fonts', 'images', 'mobile', 'vqa', 'vq'], ads: ['trackers', 'lists', 'ytads', 'twads', 'tw360'] };
 
 // Tips: [¿aplica con esta config?, es, en]. Solo aparecen los que todavía no aprovechás.
 const COMMON = [

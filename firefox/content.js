@@ -26,7 +26,9 @@ function apply() {
   if (s.on && s.ytads && yt) css += '#masthead-ad,ytd-watch-flexy #player-ads,.ytp-ad-overlay-container,ytd-ad-slot-renderer,ytd-in-feed-ad-layout-renderer,ytd-banner-promo-renderer,ytd-promoted-sparkles-web-renderer,ytd-display-ad-renderer,ytd-statement-banner-renderer,ytd-companion-slot-renderer,ytd-player-legacy-desktop-watch-ads-renderer,ytd-enforcement-message-view-model,tp-yt-paper-dialog:has(ytd-enforcement-message-view-model){display:none!important}#movie_player.ad-showing video{opacity:0!important}';
   const h = document.documentElement;
   h.dataset.hiberYt = s.on && s.ytads ? '1' : '0';
+  h.dataset.hiberTwa = s.on && s.twads ? '1' : '0';
   h.dataset.hiberPop = s.on && s.trackers ? '1' : '0';
+  h.dataset.hiberTw = s.on && s.tw360 ? '1' : '';
   h.dataset.hiberVq = s.on && s.vq ? '1' : '';
   h.dataset.hiberVqa = s.on && s.vqa ? '1' : '';
   h.dataset.hiberMotion = calm ? '1' : '';
