@@ -2,7 +2,7 @@ const TXT = {
   es: {
     upd: (v) => `Hay una versión nueva (${v}). Descargala acá`,
     active: 'Activa', tag: 'Duerme lo que no usás y recorta lo que pesa.',
-    gSleep: 'Dormir pestañas', gGuard: 'Control de recursos', gRam: 'RAM máxima', gCpu: 'CPU máxima', gHint: 'La RAM es una estimación de las pestañas (Chrome); la CPU es la de todo el equipo. Mínimo 1 GB y 1%. Si se pasa duerme pestañas y avisa; si queda imposible o el navegador se cuelga, se desactiva solo.', gSpeed: 'Rendimiento', gAds: 'Anuncios', gSites: 'Sitios',
+    gSleep: 'Dormir pestañas', gGuard: 'Control de recursos', gRam: 'RAM máxima', gCpu: 'CPU máxima', gHint: 'La RAM es una estimación de las pestañas (Chrome); la CPU es la de TODO el equipo (juegos y otras apps incluidas), no solo la del navegador: se actúa si pasa el tope 3 min seguidos y solo con pestañas inactivas. Mínimo 1 GB y 1%. Si se pasa duerme pestañas y avisa; si queda imposible o el navegador se cuelga, se desactiva solo.', gSpeed: 'Rendimiento', gAds: 'Anuncios', gSites: 'Sitios',
     sleepAfter: 'Dormir tras', timeHint: 'Elegí el tiempo que quieras (mínimo 10 segundos). Se revisa cada ~30 s.',
     units: { s: 'segundos', m: 'minutos', h: 'horas' },
     never: 'Estos sitios nunca se duermen', always: 'Estos sitios siempre se duermen (aunque suenen)', wlHint: 'uno por línea, ej: youtube.com',
@@ -36,7 +36,7 @@ const TXT = {
   en: {
     upd: (v) => `New version available (${v}). Download it here`,
     active: 'On', tag: 'Sleeps what you don\'t use and trims what\'s heavy.',
-    gSleep: 'Sleep tabs', gGuard: 'Resource control', gRam: 'Max RAM', gCpu: 'Max CPU', gHint: 'RAM is an estimate for tabs (Chrome); CPU is whole-system. Minimum 1 GB and 1%. Going over puts tabs to sleep and notifies you; if the limits are impossible or the browser hangs, it turns itself off.', gSpeed: 'Performance', gAds: 'Ads', gSites: 'Sites',
+    gSleep: 'Sleep tabs', gGuard: 'Resource control', gRam: 'Max RAM', gCpu: 'Max CPU', gHint: 'RAM is an estimate for tabs (Chrome); CPU is for the WHOLE computer (games and other apps included), not just the browser: it acts only if over the limit for 3 minutes straight, and only on idle tabs. Minimum 1 GB and 1%. Going over puts tabs to sleep and notifies you; if the limits are impossible or the browser hangs, it turns itself off.', gSpeed: 'Performance', gAds: 'Ads', gSites: 'Sites',
     sleepAfter: 'Sleep after', timeHint: 'Pick any time you like (10 seconds minimum). Checked every ~30 s.',
     units: { s: 'seconds', m: 'minutes', h: 'hours' },
     never: 'These sites never sleep', always: 'These sites always sleep (even with sound)', wlHint: 'one per line, e.g. youtube.com',

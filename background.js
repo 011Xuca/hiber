@@ -218,11 +218,11 @@ async function guard() {
   const hard = s.gramOn && gb >= s.gram, soft = s.gramOn && gb >= s.gram * 0.8;
   const hot = s.gcpuOn && cpu >= s.gcpu;
   await chrome.storage.session.set({ gc: hot ? gc + 1 : 0 });
-  if (!hard && !(hot && gc >= 1)) { if (soft) await sweep(false, 60); return; }
+  if (!hard && !(hot && gc >= 5)) { if (soft) await sweep(false, 60); return; }
   const hits = [...gh.filter((x) => now - x < 600000), now];
-  await chrome.storage.session.set({ gh: hits, gc: 0 }); // tras disparar hacen falta 2 chequeos calientes nuevos
+  await chrome.storage.session.set({ gh: hits, gc: 0 }); // tras disparar hacen falta 6 chequeos calientes (3 min): la CPU es la de todo el equipo, no se sabe quién la gasta
   if (hits.length >= 4) return reset('Los límites son demasiado bajos (se disparaban sin parar): desactivé el limitador. Subilos y volvé a activarlo.');
-  const n = await sweep(true, 0, s.ghard); // límite estricto: duerme también las pestañas con sonido o video
+  const n = hard ? await sweep(true, 0, s.ghard) : await sweep(false, 60, s.ghard); // solo CPU: únicamente pestañas inactivas hace +1 min // límite estricto: duerme también las pestañas con sonido o video
   if (now - gn > 300000) {
     await chrome.storage.session.set({ gn: now });
     notify(`${hard ? 'RAM ~' + gb.toFixed(1) + ' GB' : 'CPU ' + Math.round(cpu) + '%'}: ${n} pestañas dormidas.`);
