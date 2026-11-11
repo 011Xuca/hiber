@@ -3,7 +3,7 @@
 # version.txt a GitHub (main) para que el aviso "NEW" de la extension coincida.
 import os, subprocess, zipfile
 subprocess.run(['node', 'build-firefox.js'], check=True)
-FILES = ['manifest.json', 'defaults.js', 'background.js', 'content.js', 'main.js', 'yt.js', 'popup.html', 'popup.js', 'logo.svg']
+FILES = ['manifest.json', 'defaults.js', 'background.js', 'content.js', 'main.js', 'yt.js', 'twitch.js', 'ad_status.js', 'popup.html', 'popup.js', 'logo.svg']
 v = open('version.txt').read().strip()
 os.makedirs('dist', exist_ok=True)
 def pack(name, root):

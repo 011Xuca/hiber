@@ -1,7 +1,7 @@
 // Uso: node build-firefox.js  ->  crea la carpeta firefox/ lista para cargar en Firefox.
 // Firefox no usa service_worker (usa scripts) y pide un id; el resto de los archivos es el mismo.
 const fs = require('fs');
-const FILES = ['defaults.js', 'background.js', 'content.js', 'main.js', 'yt.js', 'popup.html', 'popup.js', 'logo.svg'];
+const FILES = ['defaults.js', 'background.js', 'content.js', 'main.js', 'yt.js', 'twitch.js', 'ad_status.js', 'popup.html', 'popup.js', 'logo.svg'];
 const m = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
 
 delete m.minimum_chrome_version;

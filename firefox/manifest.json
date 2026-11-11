@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Hiber",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "default_locale": "es",
   "description": "__MSG_desc__",
   "icons": {
@@ -16,16 +16,36 @@
     "alarms",
     "declarativeNetRequest",
     "system.memory",
-    "privacy"
+    "privacy",
+    "system.cpu",
+    "notifications"
   ],
   "host_permissions": [
     "<all_urls>"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "ad_status.js"
+      ],
+      "matches": [
+        "*://*.youtube.com/*"
+      ]
+    }
   ],
   "background": {
     "scripts": [
       "defaults.js",
       "background.js"
     ]
+  },
+  "commands": {
+    "pip": {
+      "suggested_key": {
+        "default": "Alt+P"
+      },
+      "description": "__MSG_pip__"
+    }
   },
   "action": {
     "default_popup": "popup.html",
@@ -64,6 +84,16 @@
       ],
       "js": [
         "yt.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "*://*.twitch.tv/*"
+      ],
+      "js": [
+        "twitch.js"
       ],
       "run_at": "document_start",
       "world": "MAIN"

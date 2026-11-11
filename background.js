@@ -14,7 +14,7 @@ const TRACKERS = ['subduepaler.cyou', 'agl003.com', 'slunkenfulgora.click', 'dou
   'effectivegatecpm.com', 'profitableratecpm.com', 'highperformanceformat.com', 'dolohen.com', 'acscdn.com', 'adsco.re', 'cdn4ads.com', 'trafficstars.com', 'popunder.net', 'ay267.com', 'painamour.com', 'catrck.net', 'histats.com', 'exosrv.com', 'magsrv.com', 'pemsrv.com', 'galaksion.com', 'evadav.com', 'clickaine.com', 'adspyglass.com', 'popmyads.com'];
 const POPUNDER = ['catrck.net', 'exosrv.com', 'magsrv.com', 'popmyads.com', 'clickaine.com', '073m.com', 'ay267.com', 'painamour.com', 'popads.net', 'propellerads.com', 'popcash.net', 'clickadu.com', 'hilltopads.net', 'onclickads.net', 'popunder.net', 'propu.sh', 'realsrv.com', 'exoclick.com', 'juicyads.com'];
 const MOBILE_UA = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36';
-const RULE_IDS = [1, 2, 3, 4, 5, 6, 7, 8];
+const RULE_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 // Rutas típicas de anuncios (complementa la lista de dominios).
 // Sin "/ads/" genérico ni xhr/other: cortaban manifiestos y APIs de reproductores (el video no cargaba hasta recargar).
 const AD_PATH = '^https?://[^/]+/.*(/pagead/|/adserver/|/adframe|/banner[_-]?ads?/|/doubleclick/)';
@@ -76,6 +76,12 @@ async function applyRulesNow() {
   if (s.on) {
     if (s.trackers) add.push({ id: 1, action: { type: 'block' },
       condition: { requestDomains: TRACKERS, resourceTypes: ['script', 'image', 'xmlhttprequest', 'sub_frame', 'ping', 'other'] } });
+    // YouTube detecta bloqueadores si ad_status.js no carga y pausa el video: se le devuelve un archivo falso (prioridad 2: gana a la regla de bloqueo).
+    if (s.trackers) add.push({ id: 9, priority: 2, action: { type: 'redirect', redirect: { extensionPath: '/ad_status.js' } },
+      condition: { urlFilter: '||static.doubleclick.net/instream/ad_status.js', resourceTypes: ['script'] } });
+    // YouTube pide este ID de Google al cargar y, si falla, lo anota como bloqueador: se deja pasar solo desde YouTube (gana a la lista).
+    if (s.trackers) add.push({ id: 10, priority: 3, action: { type: 'allow' },
+      condition: { urlFilter: '||googleads.g.doubleclick.net/pagead/id', initiatorDomains: ['youtube.com'], resourceTypes: ['xmlhttprequest'] } });
     if (s.trackers) add.push({ id: 5, action: { type: 'block' },
       condition: { regexFilter: AD_PATH, resourceTypes: ['script', 'image', 'sub_frame'] } });
     // Pop-unders: la pestaña que abre el anuncio ni llega a cargar (firma afu.php?zoneid= de Monetag/Propeller, dominios que rotan).
@@ -116,21 +122,20 @@ async function applyRulesNow() {
 
 // force=true: ignora el tiempo de inactividad (botón "dormir ahora").
 // Se duerme si no suena ni reproduce. "Nunca" gana; "siempre" duerme aunque suene. Formularios sin guardar: nunca.
-async function sweep(force) {
+async function sweep(force, idle, all) {
   const s = await get();
-  if (!s.on || (!s.discard && !force)) return 0;
+  if (!s.on || (!s.discard && !force && idle == null)) return 0;
   const tabs = await chrome.tabs.query({ active: false, discarded: false, pinned: false, url: ['http://*/*', 'https://*/*'] });
   const has = (list, t) => list.some((h) => t.url.includes(h));
   let n = 0;
   for (const t of tabs) {
-    if (!force && Date.now() - t.lastAccessed < s.secs * 1000) continue;
+    if (!force && Date.now() - t.lastAccessed < (idle ?? s.secs) * 1000) continue;
     if (has(s.whitelist, t)) continue;
     const must = has(s.sleepList, t);
-    if (!must && (t.audible || !t.autoDiscardable)) continue;
-    const r = await chrome.tabs.sendMessage(t.id, 'dirty').catch(() => ({}));
-    if (r?.dirty || (!must && r?.playing)) continue;
-    await chrome.tabs.discard(t.id);
-    n++;
+    if (!must && !all && (t.audible || !t.autoDiscardable)) continue;
+    const r = await chrome.tabs.sendMessage(t.id, 'dirty').catch(() => ({})); // pestañas abiertas antes de cargar la extensión no tienen content script: se duermen igual
+    if (r?.dirty || (!must && !all && r?.playing)) continue;
+    try { await chrome.tabs.discard(t.id); n++; } catch { /* ya dormida o cerrada */ }
   }
   return n;
 }
@@ -141,12 +146,16 @@ async function checkUpdate() {
   try {
     const v = (await (await fetch(`https://raw.githubusercontent.com/${REPO}/main/version.txt`, { cache: 'no-store' })).text()).trim();
     await chrome.storage.local.set({ upd: v });
-    chrome.action.setBadgeText({ text: newer(v, chrome.runtime.getManifest().version) ? 'NEW' : '' });
+    const old = newer(v, chrome.runtime.getManifest().version);
+    chrome.action.setBadgeText({ text: old ? '!' : '' });
+    chrome.action.setBadgeBackgroundColor({ color: '#d93025' }); // rojo: hay una versión nueva pendiente
+    chrome.action.setTitle({ title: old ? `Hiber: actualización pendiente (${v}). Descargala y recargá la extensión.` : 'Hiber' });
   } catch { /* sin red: se reintenta en el próximo ciclo */ }
 }
 
 const start = () => {
   chrome.alarms.create('sweep', { periodInMinutes: 0.5 });
+  chrome.alarms.create('guard', { periodInMinutes: 0.5 });
   chrome.alarms.create('update', { periodInMinutes: 720 });
   chrome.alarms.create('lists', { periodInMinutes: 720 }); // solo baja la lista si tiene más de 3 días
   applyRules();
@@ -156,7 +165,7 @@ const start = () => {
 chrome.runtime.onInstalled.addListener(start);
 chrome.runtime.setUninstallURL('https://011xuca.github.io/links/');
 chrome.runtime.onStartup.addListener(start);
-chrome.alarms.onAlarm.addListener((a) => (a.name === 'sweep' ? sweep(false) : a.name === 'lists' ? refreshList(false) : checkUpdate()));
+chrome.alarms.onAlarm.addListener((a) => (a.name === 'sweep' ? sweep(false) : a.name === 'guard' ? guard() : a.name === 'lists' ? refreshList(false) : checkUpdate()));
 chrome.storage.onChanged.addListener((c) => c.s && applyRules());
 chrome.runtime.onMessage.addListener((m, _, reply) => {
   if (m === 'sweep') { sweep(true).then(reply); return true; }
@@ -171,3 +180,51 @@ const closePop = async (t, u) => {
 };
 chrome.tabs.onCreated.addListener((t) => closePop(t, t.pendingUrl || t.url));
 chrome.tabs.onUpdated.addListener((id, c, t) => { if (c.url) closePop(t, c.url); });
+
+// Video flotante: Alt+P abre/cierra la ventana flotante del video más grande de la pestaña (la abre content.js).
+chrome.commands.onCommand.addListener(async (c) => {
+  if (c !== 'pip' || !(await get()).pip) return;
+  const [t] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (t) chrome.tabs.sendMessage(t.id, 'pip').catch(() => {});
+});
+
+// Limitador estilo Opera GX. Una extensión no puede topar el navegador, así que lo compensa:
+// - RAM: estima la de las pestañas (heap JS x2, Chrome) y, al 80% del tope, duerme las inactivas hace +1 min; al 100%, todas las inactivas.
+// - CPU: uso de todo el equipo; si pasa el tope 2 chequeos seguidos (1 min), duerme pestañas.
+// - Si lo ajustado es imposible (4 disparos en 10 min) o el navegador estuvo colgado (chequeo muy tarde con CPU al tope), se desactiva solo y avisa.
+const notify = (message) => chrome.notifications.create({ type: 'basic', iconUrl: 'icons/icon-128.png', title: 'Hiber', message });
+async function guard() {
+  const s = await get();
+  const now = Date.now();
+  const { gt = 0, gh = [], gc = 0, gn = 0 } = await chrome.storage.session.get(['gt', 'gh', 'gc', 'gn']);
+  await chrome.storage.session.set({ gt: now }); // se marca siempre: así una pausa larga (notebook suspendida) no parece un cuelgue
+  if (!s.on || !(s.gramOn || s.gcpuOn)) return;
+  let cpu = 0, heap = 0;
+  try { // CPU = diferencia entre dos muestras de tiempos acumulados
+    const t = (await chrome.system.cpu.getInfo()).processors.reduce((a, p) => ({ u: a.u + p.usage.total - p.usage.idle, t: a.t + p.usage.total }), { u: 0, t: 0 });
+    const { g } = await chrome.storage.session.get('g');
+    if (g && t.t > g.t) cpu = ((t.u - g.u) / (t.t - g.t)) * 100;
+    await chrome.storage.session.set({ g: t });
+  } catch { /* sin API de CPU: solo RAM */ }
+  const reset = async (why) => {
+    await chrome.storage.session.set({ gh: [], gc: 0 });
+    await chrome.storage.local.set({ s: { ...s, gramOn: false, gcpuOn: false, gram: D.gram, gcpu: D.gcpu } });
+    notify(why);
+  };
+  if (gt && now - gt > 120000 && now - gt < 900000 && s.gcpuOn && gc >= 1 && cpu >= s.gcpu) return reset('El navegador se colgó con el limitador activo: lo desactivé y volví los límites a los de fábrica.');
+  const tabs = await chrome.tabs.query({ discarded: false, url: ['http://*/*', 'https://*/*'] });
+  if (s.gramOn) for (const t of tabs) if (!t.frozen) heap += (await chrome.tabs.sendMessage(t.id, 'mem').catch(() => 0)) || 0;
+  const gb = (heap * 2) / 2 ** 30; // shortcut: x2 aproxima el overhead del renderer, sin chrome.processes (solo Chrome dev); subir si queda corto
+  const hard = s.gramOn && gb >= s.gram, soft = s.gramOn && gb >= s.gram * 0.8;
+  const hot = s.gcpuOn && cpu >= s.gcpu;
+  await chrome.storage.session.set({ gc: hot ? gc + 1 : 0 });
+  if (!hard && !(hot && gc >= 1)) { if (soft) await sweep(false, 60); return; }
+  const hits = [...gh.filter((x) => now - x < 600000), now];
+  await chrome.storage.session.set({ gh: hits, gc: 0 }); // tras disparar hacen falta 2 chequeos calientes nuevos
+  if (hits.length >= 4) return reset('Los límites son demasiado bajos (se disparaban sin parar): desactivé el limitador. Subilos y volvé a activarlo.');
+  const n = await sweep(true, 0, s.ghard); // límite estricto: duerme también las pestañas con sonido o video
+  if (now - gn > 300000) {
+    await chrome.storage.session.set({ gn: now });
+    notify(`${hard ? 'RAM ~' + gb.toFixed(1) + ' GB' : 'CPU ' + Math.round(cpu) + '%'}: ${n} pestañas dormidas.`);
+  }
+}

@@ -2,7 +2,7 @@ const TXT = {
   es: {
     upd: (v) => `Hay una versión nueva (${v}). Descargala acá`,
     active: 'Activa', tag: 'Duerme lo que no usás y recorta lo que pesa.',
-    gSleep: 'Dormir pestañas', gSpeed: 'Rendimiento', gAds: 'Anuncios', gSites: 'Sitios',
+    gSleep: 'Dormir pestañas', gGuard: 'Control de recursos', gRam: 'RAM máxima', gCpu: 'CPU máxima', gHint: 'La RAM es una estimación de las pestañas (Chrome); la CPU es la de todo el equipo. Mínimo 1 GB y 1%. Si se pasa duerme pestañas y avisa; si queda imposible o el navegador se cuelga, se desactiva solo.', gSpeed: 'Rendimiento', gAds: 'Anuncios', gSites: 'Sitios',
     sleepAfter: 'Dormir tras', timeHint: 'Elegí el tiempo que quieras (mínimo 10 segundos). Se revisa cada ~30 s.',
     units: { s: 'segundos', m: 'minutos', h: 'horas' },
     never: 'Estos sitios nunca se duermen', always: 'Estos sitios siempre se duermen (aunque suenen)', wlHint: 'uno por línea, ej: youtube.com',
@@ -16,6 +16,10 @@ const TXT = {
       discard: ['Dormir pestañas', 'Se duermen si no suenan ni reproducen. Recargan al hacerles clic.'],
       cpu: ['Menos efectos', 'Saca sombras, transparencias y filtros.'],
       motion: ['Sin animaciones', 'Elimina transiciones y movimiento, también los hechos con JavaScript.'],
+      gramOn: ['Limitador de RAM', 'Duerme pestañas antes de que se pase del tope de abajo.'],
+      gcpuOn: ['Limitador de CPU', 'Duerme pestañas si la CPU se pasa del tope de abajo.'],
+      ghard: ['Límite estricto', 'Al llegar al tope duerme también las pestañas con sonido o video.'],
+      pip: ['Video flotante', 'Botón sobre los videos (y Alt+P) para verlos en una ventanita sobre otras apps.'],
       lazy: ['Carga diferida', 'Las imágenes cargan al verlas.'],
       preload: ['Deshabilitar precarga de páginas', 'El navegador no baja páginas que quizá nunca abrís.'],
       bgvideo: ['Frenar videos de fondo', 'Pausa los videos mudos si cambiás de pestaña.'],
@@ -24,14 +28,15 @@ const TXT = {
       mobile: ['Versión celu', 'Pide la web móvil, que suele ser más liviana.'],
       trackers: ['Bloquear anuncios', 'Corta publicidad y rastreadores, y oculta banners.'],
       lists: ['Lista pública de anuncios', 'Suma miles de dominios de publicidad conocidos (lista de Peter Lowe). Se actualiza sola cada 3 días.'],
-      ytads: ['Anuncios de YouTube', 'Los saca o los salta al instante. YouTube cambia seguido y puede fallar.'],
+      ytads: ['Anuncios de YouTube y Twitch', 'Los saca o los salta al instante. YouTube cambia seguido y puede fallar.'],
+      vqa: ['YouTube: calidad automática', 'Fija la calidad más alta que aprovecha tu pantalla y tu red (red floja: solo la usa de tope).'],
       vq: ['YouTube a 480p máx.', 'Usa menos RAM, GPU y datos. Baja la nitidez.'],
     },
   },
   en: {
     upd: (v) => `New version available (${v}). Download it here`,
     active: 'On', tag: 'Sleeps what you don\'t use and trims what\'s heavy.',
-    gSleep: 'Sleep tabs', gSpeed: 'Performance', gAds: 'Ads', gSites: 'Sites',
+    gSleep: 'Sleep tabs', gGuard: 'Resource control', gRam: 'Max RAM', gCpu: 'Max CPU', gHint: 'RAM is an estimate for tabs (Chrome); CPU is whole-system. Minimum 1 GB and 1%. Going over puts tabs to sleep and notifies you; if the limits are impossible or the browser hangs, it turns itself off.', gSpeed: 'Performance', gAds: 'Ads', gSites: 'Sites',
     sleepAfter: 'Sleep after', timeHint: 'Pick any time you like (10 seconds minimum). Checked every ~30 s.',
     units: { s: 'seconds', m: 'minutes', h: 'hours' },
     never: 'These sites never sleep', always: 'These sites always sleep (even with sound)', wlHint: 'one per line, e.g. youtube.com',
@@ -45,6 +50,10 @@ const TXT = {
       discard: ['Sleep tabs', 'Sleep when silent and not playing. Reload when clicked.'],
       cpu: ['Fewer effects', 'Removes shadows, transparency and filters.'],
       motion: ['No animations', 'Removes transitions and movement, including JavaScript ones.'],
+      gramOn: ['RAM limiter', 'Puts tabs to sleep before going over the limit below.'],
+      gcpuOn: ['CPU limiter', 'Puts tabs to sleep if CPU goes over the limit below.'],
+      ghard: ['Hard limit', 'At the limit, also puts tabs with sound or video to sleep.'],
+      pip: ['Floating video', 'Button over videos (and Alt+P) to watch them in a small window above other apps.'],
       lazy: ['Lazy loading', 'Images load when seen.'],
       preload: ['Disable page preloading', 'The browser won\'t fetch pages you may never open.'],
       bgvideo: ['Stop background video', 'Pauses muted videos when you switch tabs.'],
@@ -53,12 +62,13 @@ const TXT = {
       mobile: ['Phone version', 'Asks for the mobile site, usually lighter.'],
       trackers: ['Block ads', 'Cuts ads and trackers, and hides banners.'],
       lists: ['Public ad list', 'Adds thousands of known ad domains (Peter Lowe list). Updates itself every 3 days.'],
-      ytads: ['YouTube ads', 'Removes them or skips them instantly. YouTube changes often and this can break.'],
+      ytads: ['YouTube and Twitch ads', 'Removes them or skips them instantly. YouTube changes often and this can break.'],
+      vqa: ['YouTube: auto quality', 'Sets the highest quality your screen and network can use (weak network: only as a cap).'],
       vq: ['YouTube 480p max', 'Uses less RAM, GPU and data. Lowers sharpness.'],
     },
   },
 };
-const GROUPS = { sleep: ['discard'], speed: ['motion', 'cpu', 'lazy', 'preload', 'bgvideo', 'fonts', 'images', 'mobile', 'vq'], ads: ['trackers', 'lists', 'ytads'] };
+const GROUPS = { sleep: ['discard'], guard: ['gramOn', 'gcpuOn', 'ghard'], speed: ['pip', 'motion', 'cpu', 'lazy', 'preload', 'bgvideo', 'fonts', 'images', 'mobile', 'vqa', 'vq'], ads: ['trackers', 'lists', 'ytads'] };
 
 // Tips: [¿aplica con esta config?, es, en]. Solo aparecen los que todavía no aprovechás.
 const COMMON = [
@@ -144,6 +154,7 @@ function render() {
       return `<label class="row"><span><b>${t}</b><small>${d}</small></span><input type="checkbox" data-k="${k}" ${s[k] ? 'checked' : ''}></label>`; }).join('');
   }
   $('on').checked = s.on;
+  $('gram').value = s.gram; $('gcpu').value = s.gcpu; $('gramv').textContent = s.gram + ' GB'; $('gcpuv').textContent = s.gcpu + '%';
   $('mins').value = +(s.secs / U[s.unit]).toFixed(2);
   opts('unit', Object.entries(L.units), s.unit);
   $('wl').value = s.whitelist.join('\n');
@@ -166,6 +177,7 @@ async function stats() {
     const m = await chrome.system.memory.getInfo();
     const gb = (b) => (b / 2 ** 30).toFixed(1);
     $('stats').textContent = L.stats(gb(m.availableCapacity), gb(m.capacity), d);
+    $('gram').max = Math.max(2, Math.floor(m.capacity / 2 ** 30)); $('gram').value = s.gram; // como Opera GX: el slider llega hasta la RAM del equipo
   } catch { $('stats').textContent = L.statsNoMem(d); } // Firefox no tiene system.memory
 }
 
@@ -184,6 +196,10 @@ const setTime = () => {
   save(); render();
 };
 $('mins').onchange = $('unit').onchange = setTime;
+$('gram').onchange = (e) => { s.gram = Math.max(1, parseFloat(e.target.value) || D.gram); save(); render(); };
+$('gcpu').onchange = (e) => { s.gcpu = Math.min(100, Math.max(1, Math.round(parseFloat(e.target.value)) || D.gcpu)); save(); render(); };
+$('gram').oninput = (e) => { $('gramv').textContent = e.target.value + ' GB'; };
+$('gcpu').oninput = (e) => { $('gcpuv').textContent = e.target.value + '%'; };
 $('wl').onchange = (e) => { s.whitelist = lines(e.target.value); save(); };
 $('sl').onchange = (e) => { s.sleepList = lines(e.target.value); save(); };
 $('lang').onchange = (e) => { s.lang = e.target.value; save(); render(); };
@@ -200,3 +216,6 @@ Promise.all([chrome.storage.local.get(['s', 'upd', 'lstN', 'lstT']), detect()]).
     $('upd').hidden = false;
   }
 });
+
+// Si el limitador se apaga solo (guard en background), el popup abierto no debe volver a escribir los valores viejos.
+chrome.storage.onChanged.addListener((c) => { if (c.s && s) { s = { ...D, ...c.s.newValue }; render(); } });
