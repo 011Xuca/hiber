@@ -30,9 +30,8 @@ const TXT = {
       lists: ['Lista pública de anuncios', 'Suma miles de dominios de publicidad conocidos (lista de Peter Lowe). Se actualiza sola cada 3 días.'],
       ytads: ['Anuncios de YouTube', 'Corta el anuncio al empezar el video; si no puede, va silenciado y a x2. YouTube cambia seguido y puede fallar.'],
       twads: ['Anuncios de Twitch', 'Silencia el anuncio mientras dura y saca los de la portada. En los canales no se pueden quitar con calidad completa.'],
-      tw360: ['Twitch en 360p sin anuncios', 'Necesita "Anuncios de Twitch". Pide todos los directos en 360p, que vienen sin anuncios. Pierde calidad en todos los canales.'],
+      kickads: ['Anuncios de Kick', 'Corta los videos de publicidad y los banners de Kick. El directo sigue con su calidad normal.'],
       vqa: ['YouTube: calidad automática', 'Fija la calidad más alta que aprovecha tu pantalla y tu red (red floja: solo la usa de tope).'],
-      vq: ['YouTube a 480p máx.', 'Usa menos RAM, GPU y datos. Baja la nitidez.'],
     },
   },
   en: {
@@ -66,19 +65,20 @@ const TXT = {
       lists: ['Public ad list', 'Adds thousands of known ad domains (Peter Lowe list). Updates itself every 3 days.'],
       ytads: ['YouTube ads', 'Cuts the ad when the video starts; if it cannot, it plays muted at 2x. YouTube changes often and this can break.'],
       twads: ['Twitch ads', 'Mutes the ad while it lasts and removes the ones on the home page. On channels they cannot be removed at full quality.'],
-      tw360: ['Twitch 360p without ads', 'Needs "Twitch ads". Requests every stream at 360p, which comes without ads. Lowers quality on every channel.'],
+      kickads: ['Kick ads', 'Cuts Kick video ads and banners. The stream keeps its normal quality.'],
       vqa: ['YouTube: auto quality', 'Sets the highest quality your screen and network can use (weak network: only as a cap).'],
-      vq: ['YouTube 480p max', 'Uses less RAM, GPU and data. Lowers sharpness.'],
     },
   },
 };
-const GROUPS = { sleep: ['discard'], guard: ['gramOn', 'gcpuOn', 'ghard'], speed: ['pip', 'motion', 'cpu', 'lazy', 'preload', 'bgvideo', 'fonts', 'images', 'mobile', 'vqa', 'vq'], ads: ['trackers', 'lists', 'ytads', 'twads', 'tw360'] };
+const GROUPS = { sleep: ['discard'], guard: ['gramOn', 'gcpuOn', 'ghard'], speed: ['pip', 'motion', 'cpu', 'lazy', 'preload', 'bgvideo', 'fonts', 'images', 'mobile', 'vqa'], ads: ['trackers', 'lists', 'ytads', 'twads', 'kickads'] };
 
-// Tips: [¿aplica con esta config?, es, en]. Solo aparecen los que todavía no aprovechás.
+// Tips: [¿aplica con esta config?, es, en]. Solo aparecen los que todavía no aprovechás: nunca uno sobre una función de Hiber que ya está activa.
 const COMMON = [
   [(s) => !s.discard, 'Activá "Dormir pestañas" acá: es lo que más memoria libera.', 'Turn on "Sleep tabs" here: it frees the most memory.'],
   [(s) => !s.trackers, 'Activá "Bloquear anuncios": menos red y menos CPU.', 'Turn on "Block ads": less network and CPU.'],
   [(s) => !s.ytads, 'Si mirás mucho YouTube, activá "Anuncios de YouTube".', 'If you watch a lot of YouTube, turn on "YouTube ads".'],
+  [(s) => !s.twads, 'Si mirás Twitch, activá "Anuncios de Twitch".', 'If you watch Twitch, turn on "Twitch ads".'],
+  [(s) => !s.kickads, 'Si mirás Kick, activá "Anuncios de Kick".', 'If you watch Kick, turn on "Kick ads".'],
   [(s) => !s.preload, 'Activá "Deshabilitar precarga de páginas": el navegador deja de bajar páginas que no abrís.', 'Turn on "Disable page preloading": the browser stops fetching pages you don\'t open.'],
   [(s) => !s.motion, 'Activá "Sin animaciones": menos CPU y GPU.', 'Turn on "No animations": less CPU and GPU.'],
   [(s) => !s.images, 'Probá "Sin imágenes": las fotos son lo que más pesa en casi toda web.', 'Try "No images": photos are the heaviest part of most pages.'],
@@ -88,7 +88,6 @@ const BROWSER_TIPS = {
   chrome: [
     [() => true, 'Ajustes › Sistema: apagá "Seguir ejecutando aplicaciones en segundo plano al cerrar Chrome".', 'Settings › System: turn off "Continue running background apps when Chrome is closed".'],
     [() => true, 'Ajustes › Rendimiento: activá "Ahorro de memoria" (Memory Saver); complementa a "Dormir pestañas" de Hiber.', 'Settings › Performance: turn on "Memory Saver"; it complements Hiber\'s "Sleep tabs".'],
-    [() => true, 'Ajustes › Rendimiento (o Privacidad › Cookies): activá "Precargar páginas" (Preload pages) para que navegar se sienta más rápido.', 'Settings › Performance (or Privacy › Cookies): turn on "Preload pages" to make browsing feel faster.'],
     [() => true, 'chrome://flags/#override-cpu-performance-tier: dejalo en "Don\'t override" (no lo fuerces) para que Chrome use el nivel real de tu CPU.', 'chrome://flags/#override-cpu-performance-tier: keep it on "Don\'t override" so Chrome uses your CPU\'s real tier.'],
     [() => true, 'Shift+Esc abre el administrador de tareas de Chrome: ahí ves qué pestaña o extensión pesa.', 'Shift+Esc opens Chrome\'s task manager: see which tab or extension is heavy.'],  ],
   edge: [
@@ -97,21 +96,18 @@ const BROWSER_TIPS = {
     [() => true, 'Shift+Esc: administrador de tareas del navegador. Apagá la barra lateral y Copilot si no los usás.', 'Shift+Esc: browser task manager. Turn off the sidebar and Copilot if you don\'t use them.'],
   ],
   brave: [
-    [(s) => s.trackers, 'Brave Shields ya bloquea anuncios y rastreadores: con Shields en "Agresivo" podés apagar "Bloquear anuncios" acá para no duplicar.', 'Brave Shields already blocks ads and trackers: with Shields on "Aggressive" you can turn off "Block ads" here to avoid doubling up.'],
-    [(s) => s.ytads, 'Brave también corta anuncios de YouTube. Si ves algo raro en YouTube, apagá "Anuncios de YouTube" acá.', 'Brave also blocks YouTube ads. If YouTube acts weird, turn off "YouTube ads" here.'],
     [() => true, 'brave://settings: sacá Rewards, News, Talk, Wallet, VPN y Leo de la barra lateral y de la página nueva: menos procesos.', 'brave://settings: remove Rewards, News, Talk, Wallet, VPN and Leo from the sidebar and new tab page: fewer processes.'],
     [(s) => !s.discard, 'brave://settings/system: activá "Ahorro de memoria" (o "Dormir pestañas" de Hiber).', 'brave://settings/system: turn on "Memory Saver" (or Hiber\'s "Sleep tabs").'],
   ],
   opera: [
     [() => true, 'Si usás Opera GX: en GX Control poné un límite de RAM/CPU y activá "Hot Tabs Killer". Hiber lo complementa.', 'If you use Opera GX: in GX Control set a RAM/CPU limit and turn on "Hot Tabs Killer". Hiber complements it.'],
-    [(s) => s.trackers, 'Opera trae su propio bloqueador (Ajustes › Bloqueador de anuncios). Con uno solo alcanza: si activás el de Opera, apagá "Bloquear anuncios" acá.', 'Opera has its own blocker (Settings › Ad blocker). One is enough: if you turn Opera\'s on, turn off "Block ads" here.'],
     [() => true, 'Apagá GX Corner, los sonidos/música de fondo, Fast Action Links y la VPN gratis si no los usás.', 'Turn off GX Corner, background sounds/music, Fast Action Links and the free VPN if you don\'t use them.'],
     [() => true, 'Shift+Esc: administrador de tareas del navegador.', 'Shift+Esc: browser task manager.'],
   ],
   firefox: [
     [() => true, 'about:processes es el administrador de tareas de Firefox: ahí ves qué pestaña pesa.', 'about:processes is Firefox\'s task manager: see which tab is heavy.'],
     [() => true, 'about:preferences#general › Rendimiento: desmarcá "Usar la configuración de rendimiento recomendada" y bajá el límite de procesos de contenido.', 'about:preferences#general › Performance: untick "Use recommended performance settings" and lower the content process limit.'],
-    [(s) => s.trackers, 'about:preferences#privacy: la Protección antirrastreo "Estricta" complementa a Hiber.', 'about:preferences#privacy: "Strict" Enhanced Tracking Protection complements Hiber.'],
+    [() => true, 'about:preferences#privacy: la Protección antirrastreo "Estricta" complementa a Hiber.', 'about:preferences#privacy: "Strict" Enhanced Tracking Protection complements Hiber.'],
     [() => true, 'Firefox no deja abrir sus ajustes desde una extensión: andá a esas direcciones a mano.', 'Firefox won\'t let extensions open its settings: visit those addresses yourself.'],
   ],
 };

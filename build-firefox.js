@@ -1,10 +1,12 @@
 // Uso: node build-firefox.js  ->  crea la carpeta firefox/ lista para cargar en Firefox.
 // Firefox no usa service_worker (usa scripts) y pide un id; el resto de los archivos es el mismo.
 const fs = require('fs');
+process.chdir(__dirname);
 const FILES = ['defaults.js', 'background.js', 'content.js', 'main.js', 'yt.js', 'twitch.js', 'ad_status.js', 'popup.html', 'popup.js', 'logo.svg'];
 const m = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
 
 delete m.minimum_chrome_version;
+m.permissions = m.permissions.filter((p) => !p.startsWith('system.')); // Firefox no tiene system.* (avisa "permiso desconocido"); el código ya cae al catch
 m.background = { scripts: ['defaults.js', 'background.js'] };
 m.browser_specific_settings = { gecko: { id: 'hiber@xuca', strict_min_version: '128.0',
   data_collection_permissions: { required: ['none'] } } };

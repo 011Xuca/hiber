@@ -24,12 +24,12 @@ function apply() {
   // YouTube: oculta lo que quede de anuncios (el grueso lo corta yt.js). Sin .ytp-ad-module: ahí vive "Saltar", que solo anda con un clic real.
   // #player-ads solo dentro de la página de video: YouTube pone uno suelto de cebo y, si sale oculto, lo anota como bloqueador.
   if (s.on && s.ytads && yt) css += '#masthead-ad,ytd-watch-flexy #player-ads,.ytp-ad-overlay-container,ytd-ad-slot-renderer,ytd-in-feed-ad-layout-renderer,ytd-banner-promo-renderer,ytd-promoted-sparkles-web-renderer,ytd-display-ad-renderer,ytd-statement-banner-renderer,ytd-companion-slot-renderer,ytd-player-legacy-desktop-watch-ads-renderer,ytd-enforcement-message-view-model,tp-yt-paper-dialog:has(ytd-enforcement-message-view-model){display:none!important}#movie_player.ad-showing video{opacity:0!important}';
+  // Kick: el hueco del banner de arriba del canal (el anuncio en sí lo corta la regla 11 de background.js).
+  if (s.on && s.kickads && /(^|\.)kick\.com$/.test(location.hostname)) css += '[id^="channel-masthead--"]{display:none!important}';
   const h = document.documentElement;
   h.dataset.hiberYt = s.on && s.ytads ? '1' : '0';
   h.dataset.hiberTwa = s.on && s.twads ? '1' : '0';
   h.dataset.hiberPop = s.on && s.trackers ? '1' : '0';
-  h.dataset.hiberTw = s.on && s.tw360 ? '1' : '';
-  h.dataset.hiberVq = s.on && s.vq ? '1' : '';
   h.dataset.hiberVqa = s.on && s.vqa ? '1' : '';
   h.dataset.hiberMotion = calm ? '1' : '';
   h.dataset.hiberMobile = s.on && s.mobile ? '1' : '';

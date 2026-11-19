@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.0.2
+
+### Nuevo
+- **Anuncios de Kick** (interruptor nuevo, encendido por defecto): corta los videos de publicidad (SDK de Google IMA) y los banners (GPT/doubleclick y sus subastas) que pide kick.com, y oculta el hueco del banner de arriba del canal. El directo sigue con su calidad normal: Kick no mete los anuncios dentro del stream. Funciona aunque "Bloquear anuncios" esté apagado y no toca otros sitios. El cartel +18 de los canales maduros sigue funcionando igual (se acepta una vez y Kick lo recuerda).
+
+### Cambios
+- **Se quitó "YouTube a 480p máx."** (clave `vq`): ya no existe el tope fijo de calidad. Queda "YouTube: calidad automática".
+- **Se quitó "Twitch en 360p sin anuncios"**: ya no se pide todo Twitch en 360p. "Anuncios de Twitch" sigue usando el stream sin anuncios solo durante el corte, y la calidad completa vuelve al terminar.
+- **Tips del popup**: solo sugieren funciones que tenés apagadas; ya no aparecen consejos sobre las que ya están activas (p. ej. los de Brave y Opera sobre "Bloquear anuncios"). Suman tips para "Anuncios de Twitch" y "Anuncios de Kick". Se sacó el tip de Chrome sobre "Precargar páginas", que se contradecía con "Deshabilitar precarga de páginas" de la extensión.
+- **Nuevo color: violeta claro** (`#A78BFA`; `#6D28D9` en el tema claro del popup). El borde y la luna del ícono pasan del celeste al violeta, con el mismo fondo gris oscuro. El popup usa ese violeta en los botones, interruptores, títulos, selección y foco; su fondo oscuro es el gris del ícono.
+- **Firefox**: el manifest ya no pide `system.memory` ni `system.cpu`, que Firefox no tiene (daban aviso de permiso desconocido).
+- **Build**: `build-zips.py` frena si `version.txt`, `manifest.json` y `CHANGELOG.md` no tienen la misma versión, y revisa que cada zip traiga todos los archivos que pide su manifest. Los dos scripts andan desde cualquier carpeta.
+
+### Arreglos
+- El interruptor **"Anuncios de Twitch"** no hacía nada (Twitch obedecía al de YouTube). Ahora cada uno maneja lo suyo.
+- **Aviso de actualización**: si GitHub responde con un error o algo que no es una versión (404, límite de pedidos, portal de Wi-Fi), se ignora en vez de guardarlo como "versión nueva".
+
 ## 1.0.1
 
 ### Nuevo

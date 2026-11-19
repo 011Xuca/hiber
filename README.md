@@ -1,14 +1,14 @@
 # Hiber
 
 Duerme las pestañas que no usás, bloquea anuncios (incluido YouTube) y recorta RAM, CPU y red.
-Chrome, Edge, Brave, Opera, Vivaldi y Firefox. Versión 1.0.0.
+Chrome, Edge, Brave, Opera, Vivaldi y Firefox. Versión 1.0.2 (ver `CHANGELOG.md`).
 
 ## Qué hace
 
 **Ahorra recursos**
 - Duerme las pestañas inactivas (no toca las que suenan, reproducen video o tienen un formulario a medio escribir).
 - Recorta animaciones, efectos pesados, imágenes y precarga; pausa videos sin sonido en pestañas ocultas.
-- Opciones para bloquear fuentes e imágenes, modo celu y tope de calidad de video (480p).
+- Opciones para bloquear fuentes e imágenes y modo celu.
 - Varios niveles listos (de más tranqui a más a fondo) y un popup para ajustar cada cosa.
 
 **Bloquea anuncios**
@@ -19,7 +19,12 @@ Chrome, Edge, Brave, Opera, Vivaldi y Firefox. Versión 1.0.0.
 - **Pop-ups y redirecciones** (webs de anime, series y películas): frena las ventanas que se abren al hacer clic en el
   video, en pantalla completa o en cualquier parte; desactiva las capas invisibles que capturan el clic; cierra la
   pestaña de anuncio que igual se abra; descarta los iframes de carteles falsos ("verificá que sos humano", "Sign in").
-- **YouTube:** quita los datos de anuncios del reproductor y, si igual aparece uno, lo silencia, lo salta y toca "Saltar".
+- **YouTube:** corta el anuncio con la función del propio reproductor; si no toma, lo pasa silenciado y a x2 con "Saltar" visible.
+- **Twitch:** durante un corte usa el stream sin anuncios (360p) y vuelve a la calidad completa al terminar; si falla, silencia el anuncio.
+- **Kick:** corta los videos de publicidad y los banners sin tocar el directo, que sigue en su calidad normal.
+
+**Extras:** limitador de RAM y CPU (apagado por defecto), video flotante (Alt+P), calidad automática de YouTube y aviso
+rojo "!" en el icono cuando hay una versión nueva en GitHub.
 
 **Lo que no hace:** no toca los logins, pagos, descargas ni las redirecciones normales de una web.
 
@@ -55,6 +60,7 @@ que corresponde al navegador del usuario (Chrome/Brave/Vivaldi → chrome, Edge,
 ## Qué cambia según el navegador
 
 - Firefox no expone la memoria libre (el popup solo muestra pestañas dormidas) ni puede abrir sus ajustes desde la extensión.
+  El limitador de RAM y CPU no funciona en Firefox: no tiene `system.cpu` ni `performance.memory` (los interruptores no hacen nada).
 - Chrome y Edge usan un service worker; Firefox usa scripts de fondo. `firefox/` se genera con `node build-firefox.js`:
   no lo edites a mano.
 - El popup detecta el navegador y muestra tips propios (Brave Shields, GX Control, pestañas en suspensión de Edge, etc.).
@@ -62,7 +68,8 @@ que corresponde al navegador del usuario (Chrome/Brave/Vivaldi → chrome, Edge,
 ## Privacidad
 
 Hiber no manda datos a ningún servidor. Lo único que hace en la red es bajar la lista pública de dominios
-(`pgl.yoyo.org`) cada pocos días. Los ajustes se guardan en el navegador.
+(`pgl.yoyo.org`) cada pocos días y leer `version.txt` de este repo en GitHub (`raw.githubusercontent.com`) cada
+12 horas para el aviso de actualización. Los ajustes se guardan en el navegador.
 
 ## Límites
 

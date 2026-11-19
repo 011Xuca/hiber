@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Hiber",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "default_locale": "es",
   "description": "__MSG_desc__",
   "icons": {
@@ -15,9 +15,7 @@
     "storage",
     "alarms",
     "declarativeNetRequest",
-    "system.memory",
     "privacy",
-    "system.cpu",
     "notifications"
   ],
   "host_permissions": [

@@ -1,10 +1,10 @@
-// Anuncios de Twitch. Corre en el mundo de la página; se apaga con <html data-hiber-yt="0"> (el mismo interruptor que YouTube).
+// Anuncios de Twitch. Corre en el mundo de la página; se apaga con <html data-hiber-twa="0"> (interruptor "Anuncios de Twitch").
 // Twitch pega los anuncios dentro del stream, así que no se pueden bloquear por red. Probado (nov 2026): embed, popout, autoplay,
 // picture-by-picture y sus variantes ios/android traen anuncio; solo autoplay+android viene sin anuncio, pero con tope de 360p.
 // Por eso en la portada se usa siempre y en los canales solo durante el corte (ver abajo); si eso falla, el anuncio se silencia.
 // Twitch cambia esto seguido: si deja de andar, revisar primero acá.
 (() => {
-  const on = () => document.documentElement?.dataset.hiberYt !== '0';
+  const on = () => document.documentElement?.dataset.hiberTwa !== '0';
   // Mientras la playlist del directo trae un corte ("stitched"), el reproductor recibe la de un pedido autoplay/android
   // (sin anuncio, hasta 360p); al terminar vuelve a la normal. El reproductor baja las playlists desde un Worker: se envuelve.
   const subs = {}, workers = [];
@@ -15,14 +15,14 @@
       if (on() && typeof init?.body === 'string' && init.body.includes('PlaybackAccessToken')) {
         const b = JSON.parse(init.body);
         const live = [].concat(b).find((q) => q?.variables?.isLive && q.variables.login && q.variables.playerType !== 'frontpage');
-        if (live && document.documentElement.dataset.hiberTw !== '1') {
+        if (live) {
           const v = { ...live.variables, playerType: 'autoplay', platform: 'android' };
           fetch0.call(window, input, { ...init, body: JSON.stringify({ ...live, variables: v }) }).then((r) => r.json()).then((j) => {
             const t = [].concat(j)[0]?.data?.streamPlaybackAccessToken;
             if (t) tell(subs[v.login.toLowerCase()] = { login: v.login.toLowerCase(), token: t.value, sig: t.signature });
           }).catch(() => {});
         }
-        for (const q of [].concat(b)) if (q?.variables?.playerType === 'frontpage' || (q?.variables?.playerType && document.documentElement.dataset.hiberTw === '1')) Object.assign(q.variables, { playerType: 'autoplay', platform: 'android' });
+        for (const q of [].concat(b)) if (q?.variables?.playerType === 'frontpage') Object.assign(q.variables, { playerType: 'autoplay', platform: 'android' });
         init = { ...init, body: JSON.stringify(b) };
       }
     } catch { /* cuerpo raro: se manda tal cual */ }

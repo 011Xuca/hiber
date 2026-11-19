@@ -14,7 +14,12 @@ const TRACKERS = ['subduepaler.cyou', 'agl003.com', 'slunkenfulgora.click', 'dou
   'effectivegatecpm.com', 'profitableratecpm.com', 'highperformanceformat.com', 'dolohen.com', 'acscdn.com', 'adsco.re', 'cdn4ads.com', 'trafficstars.com', 'popunder.net', 'ay267.com', 'painamour.com', 'catrck.net', 'histats.com', 'exosrv.com', 'magsrv.com', 'pemsrv.com', 'galaksion.com', 'evadav.com', 'clickaine.com', 'adspyglass.com', 'popmyads.com'];
 const POPUNDER = ['catrck.net', 'exosrv.com', 'magsrv.com', 'popmyads.com', 'clickaine.com', '073m.com', 'ay267.com', 'painamour.com', 'popads.net', 'propellerads.com', 'popcash.net', 'clickadu.com', 'hilltopads.net', 'onclickads.net', 'popunder.net', 'propu.sh', 'realsrv.com', 'exoclick.com', 'juicyads.com'];
 const MOBILE_UA = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36';
-const RULE_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+const RULE_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+// Kick: el directo (Amazon IVS) no trae anuncios adentro; los videos van por Google IMA (imasdk) y los banners por GPT/doubleclick.
+// Sin el SDK de IMA el reproductor sigue con el directo (probado nov 2026). Solo pedidos que salen de kick.com: no toca otros sitios.
+const KICK_ADS = ['imasdk.googleapis.com', 'doubleclick.net', 'googlesyndication.com', 'googletagservices.com', 'googleadservices.com',
+  '2mdn.net', 'adtrafficquality.google', 'amazon-adsystem.com', 'criteo.com', 'criteo.net', 'openx.net', 'openxcdn.net', 'id5-sync.com',
+  'creativecdn.com', 'pubmatic.com', 'rubiconproject.com', 'adnxs.com'];
 // Rutas típicas de anuncios (complementa la lista de dominios).
 // Sin "/ads/" genérico ni xhr/other: cortaban manifiestos y APIs de reproductores (el video no cargaba hasta recargar).
 const AD_PATH = '^https?://[^/]+/.*(/pagead/|/adserver/|/adframe|/banner[_-]?ads?/|/doubleclick/)';
@@ -92,6 +97,8 @@ async function applyRulesNow() {
     // Afiliados de apuestas (refpa1234.com, rotan de número): ni se cargan como página.
     if (s.trackers) add.push({ id: 8, action: { type: 'block' },
       condition: { regexFilter: '^https?://([^/]*[.])?refpa[0-9]+[.][a-z]+/', resourceTypes: ['main_frame', 'sub_frame'] } });
+    if (s.kickads) add.push({ id: 11, action: { type: 'block' },
+      condition: { requestDomains: KICK_ADS, initiatorDomains: ['kick.com'], resourceTypes: ['script', 'image', 'xmlhttprequest', 'sub_frame', 'ping', 'media', 'other'] } });
     if (s.fonts) add.push({ id: 2, action: { type: 'block' }, condition: { resourceTypes: ['font'] } });
     if (s.images) add.push({ id: 3, action: { type: 'block' }, condition: { resourceTypes: ['image'] } });
     if (s.mobile) add.push({ id: 4, action: { type: 'modifyHeaders', requestHeaders: [
@@ -144,7 +151,9 @@ async function sweep(force, idle, all) {
 async function checkUpdate() {
   if (REPO.startsWith('USUARIO')) return;
   try {
-    const v = (await (await fetch(`https://raw.githubusercontent.com/${REPO}/main/version.txt`, { cache: 'no-store' })).text()).trim();
+    const r = await fetch(`https://raw.githubusercontent.com/${REPO}/main/version.txt`, { cache: 'no-store' });
+    const v = (await r.text()).trim();
+    if (!r.ok || !/^\d+(\.\d+){0,3}$/.test(v)) return; // 404, límite de GitHub o portal cautivo: no guardar basura como versión
     await chrome.storage.local.set({ upd: v });
     const old = newer(v, chrome.runtime.getManifest().version);
     chrome.action.setBadgeText({ text: old ? '!' : '' });

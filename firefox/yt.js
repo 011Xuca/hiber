@@ -15,9 +15,8 @@
     const q = QS.find(([h]) => px >= h - 40)[1];
     return { q, good: !c || (c.effectiveType === '4g' && (!c.downlink || c.downlink >= 5)) };
   };
-  const cap = () => (document.documentElement.dataset.hiberVq === '1' ? 'large' : 'highres');
   const setQ = (mp) => {
-    if (document.documentElement.dataset.hiberVqa !== '1' || cap() === 'large') return mp.setPlaybackQualityRange?.('tiny', cap());
+    if (document.documentElement.dataset.hiberVqa !== '1') return mp.setPlaybackQualityRange?.('tiny', 'highres');
     const { q, good } = auto();
     mp.setPlaybackQualityRange?.(good ? q : 'tiny', q);
   };
@@ -32,8 +31,8 @@
   // Si aparece un anuncio se corta; mientras tanto va silenciado y a x2 (content.js lo tapa y deja "Saltar" a la vista para un clic real).
   let resume = 0, orphan = 0, wasMuted = null, capped = '', stuck = 0, last = -1;
   setInterval(() => {
-    // Tope de calidad (480p): menos RAM, GPU y datos. Se fija una vez por video.
-    const mp = (document.documentElement.dataset.hiberVq === '1' || document.documentElement.dataset.hiberVqa === '1') && document.getElementById('movie_player');
+    // Calidad automática: se fija una vez por video.
+    const mp = document.documentElement.dataset.hiberVqa === '1' && document.getElementById('movie_player');
     const id = mp?.getVideoData?.().video_id;
     if (id && id !== capped) { capped = id; setQ(mp); }
     const p = on() && document.querySelector('.html5-video-player.ad-showing');

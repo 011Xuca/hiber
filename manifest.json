@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Hiber",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "default_locale": "es",
   "description": "__MSG_desc__",
   "minimum_chrome_version": "111",
