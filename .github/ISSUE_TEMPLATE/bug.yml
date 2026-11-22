@@ -1,0 +1,30 @@
+name: Bug report / Algo no anda
+description: Something is broken or behaves oddly (English or Spanish) / Algo se rompe o anda raro
+labels: [bug]
+body:
+  - type: textarea
+    attributes:
+      label: What happened / Qué pasó
+      description: What you expected and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps to reproduce / Pasos para repetirlo
+      placeholder: "1. I open… 2. I click… 3. It happens…"
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: "Browser and version (e.g. Chrome 130)"
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: "Hiber version (shown in the popup)"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Screenshots or error messages / Capturas o mensajes de error
+      description: Drag images here or paste the error text.

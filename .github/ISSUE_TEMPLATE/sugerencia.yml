@@ -1,0 +1,13 @@
+name: Feature request / Sugerencia
+description: An idea to improve Hiber (English or Spanish) / Una idea para mejorar Hiber
+labels: [enhancement]
+body:
+  - type: textarea
+    attributes:
+      label: What would you like it to do / Qué te gustaría que haga
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: What would it be for / Para qué te serviría
+      description: The problem it would solve, not just the solution.

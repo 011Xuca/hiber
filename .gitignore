@@ -8,3 +8,10 @@ logs/
 .claude/
 # Paquetes para las tiendas
 dist/
+
+# Secretos: nunca al repo
+.env
+.env.*
+*token*.txt
+*.pem
+*.key
