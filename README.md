@@ -1,7 +1,7 @@
 # Hiber
 
 Sleeps the tabs you don't use, blocks ads (YouTube included) and cuts RAM, CPU and network use.
-Chrome, Edge, Brave, Opera, Vivaldi and Firefox. Version 1.0.2 (see [`CHANGELOG.md`](CHANGELOG.md)).
+Chrome, Edge, Brave, Opera, Vivaldi and Firefox. Version 1.0.3 (see [`CHANGELOG.md`](CHANGELOG.md)).
 
 <!-- DEMO GIF: record it, save it as docs/demo.gif and delete the two comment markers on the next line -->
 <!-- ![Demo](docs/demo.gif) -->
@@ -108,7 +108,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Issues and pull requests are welcome, in
 ## 🇪🇸 Español
 
 Duerme las pestañas que no usás, bloquea anuncios (incluido YouTube) y recorta RAM, CPU y red.
-Chrome, Edge, Brave, Opera, Vivaldi y Firefox. Versión 1.0.2 (ver [`CHANGELOG.md`](CHANGELOG.md)).
+Chrome, Edge, Brave, Opera, Vivaldi y Firefox. Versión 1.0.3 (ver [`CHANGELOG.md`](CHANGELOG.md)).
 
 ### Qué hace
 
