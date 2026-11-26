@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.3
+
+### Nuevo
+- **Aviso de bloqueos**: si Hiber corta pedidos que la página necesitaba (scripts, datos, marcos) y la página queda sin terminar de cargar o casi sin contenido, aparece un cartel chico abajo a la derecha con lo bloqueado y el botón **"Pausar Hiber aquí"**, que deja pasar todo en ese sitio y recarga. Sale una sola vez por carga, se va solo a los 25 s y nunca aparece con un video en pantalla completa. Usa el permiso nuevo `webRequest`, que solo observa los pedidos (no los puede bloquear ni leer su contenido).
+- **Sitios pausados**: lista nueva en el popup ("Sitios donde Hiber no bloquea nada"), donde se agregan los que pausás desde el aviso y se pueden sacar a mano. En esos sitios Hiber no bloquea, no oculta anuncios ni cambia cabeceras.
+
+- **Hiber por sitio (como el escudo de Brave)**: tarjeta arriba del popup con un interruptor para apagar Hiber solo en la página que tenés abierta; recarga la pestaña. Usa la misma lista de "Sitios donde Hiber no bloquea nada".
+- **Popup reorganizado**: el bloqueador de anuncios va primero y abierto; el resto de los ajustes quedan en categorías desplegables (dormir pestañas, control de recursos, velocidad, sitios) que se abren al entrar.
+
+### Cambios
+- **Versión celu**: ahora se parece a pedir la web móvil de verdad. Además del user-agent y `sec-ch-ua-mobile`, manda la plataforma Android (`sec-ch-ua-platform`, versión y modelo) y del lado de JavaScript responde "Android" en `userAgentData` (también en `getHighEntropyValues`) y "puntero táctil, sin hover" en `(pointer: coarse)` / `(hover: none)`. Antes la plataforma seguía diciendo Windows y algunos sitios se confundían.
+- **Listas de sitios** ("nunca se duermen" / "siempre se duermen"): ahora comparan el dominio, no el texto (si la entrada lleva una ruta, como youtube.com/watch, se sigue comparando como texto). Antes "x.com" también calzaba con "box.com" o con una búsqueda que lo nombrara.
+- **Firefox**: el grupo "Control de recursos" (limitadores de RAM y CPU) ya no se muestra, porque Firefox no permite medir esos datos y los limitadores nunca habrían disparado.
+
 ## 1.0.2
 
 ### Nuevo
@@ -14,6 +28,7 @@
 - **Build**: `build-zips.py` frena si `version.txt`, `manifest.json` y `CHANGELOG.md` no tienen la misma versión, y revisa que cada zip traiga todos los archivos que pide su manifest. Los dos scripts andan desde cualquier carpeta.
 
 ### Arreglos
+- Si el navegador no avisaba de instalación ni de inicio (p. ej. al reactivar la extensión), las alarmas de dormir pestañas y del limitador no se creaban; ahora se crean al cargar.
 - El interruptor **"Anuncios de Twitch"** no hacía nada (Twitch obedecía al de YouTube). Ahora cada uno maneja lo suyo.
 - **Aviso de actualización**: si GitHub responde con un error o algo que no es una versión (404, límite de pedidos, portal de Wi-Fi), se ignora en vez de guardarlo como "versión nueva".
 

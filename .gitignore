@@ -15,3 +15,5 @@ dist/
 *token*.txt
 *.pem
 *.key
+desktop.ini
+

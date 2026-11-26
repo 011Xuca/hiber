@@ -30,6 +30,7 @@ const get = async () => ({ ...D, ...(await chrome.storage.local.get('s')).s });
 const LIST_URL = 'https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&showintro=0&mimetype=plaintext';
 const LIST_MAX = 20000, LIST_CHUNK = 1000, LIST_MIN = 100, LIST_DAYS = 3;
 const LIST_IDS = Array.from({ length: 100 }, (_, i) => 1000 + i); // aparte de RULE_IDS
+const SITE_IDS = Array.from({ length: 50 }, (_, i) => 2000 + i);
 // Nunca se bloquean (ni ellos, ni sus subdominios, ni un dominio "padre"): aunque la lista venga mal, no rompe sitios grandes, CDNs, logins, pagos ni reproductores.
 const SAFE = ['youtube.com', 'youtube-nocookie.com', 'ytimg.com', 'googlevideo.com', 'google.com', 'gstatic.com', 'googleapis.com',
   'googleusercontent.com', 'recaptcha.net', 'hcaptcha.com', 'facebook.com', 'fbcdn.net', 'instagram.com', 'whatsapp.com', 'twitter.com',
@@ -74,6 +75,7 @@ async function refreshList(force) {
 
 // En fila: dos cambios seguidos no se pisan (quitar/agregar de uno mezclado con el otro).
 let rulesQ = Promise.resolve();
+const validHost = (h) => typeof h === 'string' && h.length < 254 && /^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$/i.test(h);
 const applyRules = () => (rulesQ = rulesQ.then(applyRulesNow, applyRulesNow));
 async function applyRulesNow() {
   const s = await get();
@@ -103,12 +105,17 @@ async function applyRulesNow() {
     if (s.images) add.push({ id: 3, action: { type: 'block' }, condition: { resourceTypes: ['image'] } });
     if (s.mobile) add.push({ id: 4, action: { type: 'modifyHeaders', requestHeaders: [
       { header: 'user-agent', operation: 'set', value: MOBILE_UA },
-      { header: 'sec-ch-ua-mobile', operation: 'set', value: '?1' }] },
+      { header: 'sec-ch-ua-mobile', operation: 'set', value: '?1' },
+      { header: 'sec-ch-ua-platform', operation: 'set', value: '"Android"' },
+      { header: 'sec-ch-ua-platform-version', operation: 'set', value: '"14.0.0"' },
+      { header: 'sec-ch-ua-model', operation: 'set', value: '"Pixel 8"' }] },
       condition: { resourceTypes: ['main_frame', 'sub_frame', 'xmlhttprequest'] } });
+    (s.pausedSites || []).filter(validHost).slice(0, SITE_IDS.length).forEach((h, i) => add.push({ id: SITE_IDS[i], priority: 3, action: { type: 'allowAllRequests' },
+      condition: { requestDomains: [h], resourceTypes: ['main_frame', 'sub_frame'] } }));
   }
   // De a una: updateDynamicRules es todo o nada, y una regla rechazada (p. ej. un regex que este navegador no acepta) apagaba todas.
   const dnr = chrome.declarativeNetRequest;
-  await dnr.updateDynamicRules({ removeRuleIds: RULE_IDS }).catch((e) => console.warn('Hiber: no se pudieron quitar reglas', e));
+  await dnr.updateDynamicRules({ removeRuleIds: RULE_IDS.concat(SITE_IDS) }).catch((e) => console.warn('Hiber: no se pudieron quitar reglas', e));
   for (const r of add) await dnr.updateDynamicRules({ addRules: [r] }).catch((e) => console.warn('Hiber: regla rechazada', r.id, e));
   // Lista pública: después de las reglas propias, así si el navegador pone un tope más bajo (Firefox) las propias ya están.
   await dnr.updateDynamicRules({ removeRuleIds: LIST_IDS }).catch((e) => console.warn('Hiber: no se pudo quitar la lista', e));
@@ -133,7 +140,10 @@ async function sweep(force, idle, all) {
   const s = await get();
   if (!s.on || (!s.discard && !force && idle == null)) return 0;
   const tabs = await chrome.tabs.query({ active: false, discarded: false, pinned: false, url: ['http://*/*', 'https://*/*'] });
-  const has = (list, t) => list.some((h) => t.url.includes(h));
+  const has = (list, t) => {
+    let host = ''; try { host = new URL(t.url).hostname; } catch { return false; }
+    return list.some((h) => { h = String(h).trim().toLowerCase().replace(/^https?:[/][/]/, ''); if (h.includes('/')) return t.url.toLowerCase().includes(h); return h && (host === h || host.endsWith('.' + h)); });
+  };
   let n = 0;
   for (const t of tabs) {
     if (!force && Date.now() - t.lastAccessed < (idle ?? s.secs) * 1000) continue;
@@ -174,11 +184,28 @@ const start = () => {
 chrome.runtime.onInstalled.addListener(start);
 chrome.runtime.setUninstallURL('https://011xuca.github.io/links/');
 chrome.runtime.onStartup.addListener(start);
+chrome.alarms.get('sweep').then((a) => { if (!a) start(); });
 chrome.alarms.onAlarm.addListener((a) => (a.name === 'sweep' ? sweep(false) : a.name === 'guard' ? guard() : a.name === 'lists' ? refreshList(false) : checkUpdate()));
 chrome.storage.onChanged.addListener((c) => c.s && applyRules());
 chrome.runtime.onMessage.addListener((m, _, reply) => {
   if (m === 'sweep') { sweep(true).then(reply); return true; }
+  if (m && typeof m.pauseSite === 'string' && validHost(m.pauseSite)) {
+    (async () => {
+      const s = await get(), h = m.pauseSite.toLowerCase();
+      if (!s.pausedSites.includes(h)) { s.pausedSites = [...s.pausedSites, h]; await chrome.storage.local.set({ s }); }
+      await applyRules();
+      reply(true);
+    })();
+    return true;
+  }
 });
+
+const AVISA = new Set(['script', 'xmlhttprequest', 'sub_frame', 'stylesheet', 'font', 'media', 'other']);
+chrome.webRequest?.onErrorOccurred.addListener((d) => {
+  if (d.error !== 'net::ERR_BLOCKED_BY_CLIENT' && d.error !== 'NS_ERROR_ABORT' || d.tabId < 0 || !AVISA.has(d.type)) return;
+  let host = ''; try { host = new URL(d.url).hostname; } catch { return; }
+  chrome.tabs.sendMessage(d.tabId, { hiberBlocked: { host, type: d.type } }, { frameId: 0 }).catch(() => {});
+}, { urls: ['<all_urls>'] });
 
 // Pestañas de pop-up: si una pestaña abierta por otra página va a un dominio de pop-unders, se cierra sola (la red ya la bloquea, pero quedaba la pestaña vacía).
 const isPop = (u) => { try { const x = new URL(u); return POPUNDER.some((d) => x.hostname === d || x.hostname.endsWith('.' + d)) || /^refpa[0-9]+[.]/.test(x.hostname) || /\/afu\.php\?.*zoneid=/.test(x.pathname + x.search); } catch { return false; } };

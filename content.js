@@ -10,8 +10,9 @@ const playing = () => navigator.mediaSession?.playbackState === 'playing'
   || [...document.querySelectorAll('video,audio')].some((m) => !m.paused && !m.ended);
 chrome.runtime.onMessage.addListener((m, _, reply) => { if (m === 'dirty') reply({ dirty, playing: playing() }); if (m === 'pip') togglePip(); if (m === 'mem') reply(performance.memory?.usedJSHeapSize || 0); });
 
+const pausedHere = () => (st.pausedSites || []).some((h) => location.hostname === h || location.hostname.endsWith('.' + h));
 function apply() {
-  const s = st;
+  const s = pausedHere() ? { ...st, on: false } : st;
   const yt = /(^|\.)youtube\.com$/.test(location.hostname);
   const calm = s.on && s.motion && !yt; // en YouTube las animaciones apagadas dejan colgados sus diálogos (fondo gris)
   let css = '';
@@ -123,4 +124,41 @@ function togglePip(v) {
 // yt.js baja la calidad a 360p mientras el video está flotando.
 for (const [e, on] of [['enterpictureinpicture', true], ['leavepictureinpicture', false]]) {
   document.addEventListener(e, () => st?.on && st.pip && document.dispatchEvent(new CustomEvent('hiber-pip', { detail: on })), true);
+}
+
+if (window === top) {
+  const bloqueados = new Map();
+  let temporizador = 0, mostrado = false, cartel = null;
+  const es = () => (st?.lang === 'es') || (st?.lang !== 'en' && /^es/i.test(navigator.language || ''));
+  const quitar = () => { cartel?.remove(); cartel = null; };
+  const trabada = () => document.readyState !== 'complete' || (document.body?.innerText || '').trim().length < 60;
+  function mostrar() {
+    if (mostrado || !st?.on || pausedHere() || document.fullscreenElement || !trabada()) return;
+    mostrado = true;
+    const hosts = [...bloqueados.keys()], n = [...bloqueados.values()].reduce((a, b) => a + b, 0), E = es();
+    cartel = document.createElement('div'); cartel.id = 'hiber-aviso';
+    const r = cartel.attachShadow({ mode: 'closed' });
+    const css = document.createElement('style');
+    css.textContent = ':host{all:initial}.c{position:fixed;right:16px;bottom:16px;z-index:2147483647;max-width:340px;padding:14px 16px;border-radius:12px;background:#1b1d23;color:#f2f3f5;border:1px solid #A78BFA;box-shadow:0 8px 30px rgba(0,0,0,.5);font:13px/1.45 system-ui,sans-serif}'
+      + 'b{color:#A78BFA}small{display:block;color:#a8acb6;margin-top:4px;word-break:break-all}.f{display:flex;gap:8px;margin-top:10px}'
+      + 'button{font:inherit;padding:6px 10px;border-radius:8px;border:1px solid #3a3d47;background:#2a2d36;color:#f2f3f5;cursor:pointer}button.p{background:#A78BFA;border-color:#A78BFA;color:#14101f;font-weight:600}';
+    const c = document.createElement('div'); c.className = 'c'; c.setAttribute('role', 'status');
+    const t = document.createElement('div'), b = document.createElement('b'); b.textContent = 'Hiber';
+    t.append(b, document.createTextNode(E ? ' bloqueó ' + n + (n === 1 ? ' solicitud' : ' solicitudes') + ' de esta página y parece que no terminó de cargar. Puede ser por eso.'
+      : ' blocked ' + n + (n === 1 ? ' request' : ' requests') + ' from this page and it seems not to have finished loading. That may be why.'));
+    const sm = document.createElement('small'); sm.textContent = hosts.slice(0, 3).join(', ') + (hosts.length > 3 ? '…' : '');
+    const f = document.createElement('div'); f.className = 'f';
+    const p = document.createElement('button'); p.className = 'p'; p.textContent = E ? 'Pausar Hiber aquí' : 'Pause Hiber here';
+    p.onclick = () => chrome.runtime.sendMessage({ pauseSite: location.hostname }).then(() => location.reload(), () => {});
+    const x = document.createElement('button'); x.textContent = E ? 'Cerrar' : 'Close'; x.onclick = quitar;
+    f.append(p, x); c.append(t, sm, f); r.append(css, c);
+    (document.body || document.documentElement).append(cartel);
+    setTimeout(quitar, 25000);
+  }
+  chrome.runtime.onMessage.addListener((m) => {
+    if (!m?.hiberBlocked) return;
+    bloqueados.set(m.hiberBlocked.host, (bloqueados.get(m.hiberBlocked.host) || 0) + 1);
+    clearTimeout(temporizador); temporizador = setTimeout(mostrar, 8000);
+  });
+  document.addEventListener('fullscreenchange', () => { if (document.fullscreenElement) quitar(); });
 }

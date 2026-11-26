@@ -14,6 +14,10 @@
   const mm = window.matchMedia;
   window.matchMedia = function (q) {
     const r = mm.call(this, q);
+    if (on('hiberMobile')) {
+      const t = /^\s*\(\s*(any-)?(pointer|hover)\s*:\s*(\w+)\s*\)\s*$/.exec(q);
+      if (t) return Object.defineProperty(r, 'matches', { value: t[3] === (t[2] === 'pointer' ? 'coarse' : 'none') });
+    }
     if (on('hiberMotion') && /prefers-reduced-motion/.test(q)) {
       return Object.defineProperty(r, 'matches', { value: /reduce/.test(q) && !/no-preference/.test(q) });
     }
@@ -29,6 +33,14 @@
   fake(Navigator.prototype, 'platform', 'Linux armv8l');
   fake(Navigator.prototype, 'maxTouchPoints', 5);
   fake(window.NavigatorUAData?.prototype, 'mobile', true);
+  fake(window.NavigatorUAData?.prototype, 'platform', 'Android');
+  const ud = window.NavigatorUAData?.prototype;
+  if (ud?.getHighEntropyValues) {
+    const g = ud.getHighEntropyValues;
+    ud.getHighEntropyValues = function (...a) {
+      return g.apply(this, a).then((r) => (on('hiberMobile') ? { ...r, mobile: true, platform: 'Android', platformVersion: '14.0.0', model: 'Pixel 8', architecture: '', bitness: '' } : r));
+    };
+  }
 
   // Anti pop-ups, prudente: ante la duda deja pasar. Solo frena VENTANAS NUEVAS hacia un sitio ajeno (nunca redirecciones ni formularios), si:
   // - el destino es una red de anuncios/pop-unders conocida, o

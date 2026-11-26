@@ -5,6 +5,8 @@ const TXT = {
     gSleep: 'Dormir pestañas', gGuard: 'Control de recursos', gRam: 'RAM máxima', gCpu: 'CPU máxima', gHint: 'La RAM es una estimación de las pestañas (Chrome); la CPU es la de TODO el equipo (juegos y otras apps incluidas), no solo la del navegador: se actúa si pasa el tope 3 min seguidos y solo con pestañas inactivas. Mínimo 1 GB y 1%. Si se pasa duerme pestañas y avisa; si queda imposible o el navegador se cuelga, se desactiva solo.', gSpeed: 'Rendimiento', gAds: 'Anuncios', gSites: 'Sitios',
     sleepAfter: 'Dormir tras', timeHint: 'Elegí el tiempo que quieras (mínimo 10 segundos). Se revisa cada ~30 s.',
     units: { s: 'segundos', m: 'minutos', h: 'horas' },
+    paused: 'Sitios donde Hiber no bloquea nada (se agregan desde el aviso de bloqueos)',
+    siteHint: 'Apagalo si algo no anda en esta página. Recarga la pestaña.', siteIn: (h) => 'Hiber en ' + h,
     never: 'Estos sitios nunca se duermen', always: 'Estos sitios siempre se duermen (aunque suenen)', wlHint: 'uno por línea, ej: youtube.com',
     lang: 'Idioma', theme: 'Tema', system: 'Sistema', light: 'Claro', dark: 'Oscuro',
     social: 'Mis redes', donate: 'Donar en Ko-fi', reload: 'Recargar extensión',
@@ -40,6 +42,8 @@ const TXT = {
     gSleep: 'Sleep tabs', gGuard: 'Resource control', gRam: 'Max RAM', gCpu: 'Max CPU', gHint: 'RAM is an estimate for tabs (Chrome); CPU is for the WHOLE computer (games and other apps included), not just the browser: it acts only if over the limit for 3 minutes straight, and only on idle tabs. Minimum 1 GB and 1%. Going over puts tabs to sleep and notifies you; if the limits are impossible or the browser hangs, it turns itself off.', gSpeed: 'Performance', gAds: 'Ads', gSites: 'Sites',
     sleepAfter: 'Sleep after', timeHint: 'Pick any time you like (10 seconds minimum). Checked every ~30 s.',
     units: { s: 'seconds', m: 'minutes', h: 'hours' },
+    paused: 'Sites where Hiber blocks nothing (added from the block notice)',
+    siteHint: 'Turn it off if something breaks on this page. Reloads the tab.', siteIn: (h) => 'Hiber on ' + h,
     never: 'These sites never sleep', always: 'These sites always sleep (even with sound)', wlHint: 'one per line, e.g. youtube.com',
     lang: 'Language', theme: 'Theme', system: 'System', light: 'Light', dark: 'Dark',
     social: 'My socials', donate: 'Donate on Ko-fi', reload: 'Reload extension',
@@ -144,6 +148,7 @@ function render() {
   else document.documentElement.dataset.theme = s.theme;
 
   document.querySelectorAll('[data-t]').forEach((e) => { e.textContent = L[e.dataset.t]; });
+  Object.entries({ mins: 'sleepAfter', unit: 'sleepAfter', gram: 'gRam', gcpu: 'gCpu', wl: 'never', sl: 'always', ps: 'paused', lang: 'lang', theme: 'theme', on: 'active' }).forEach(([i, k]) => $(i).setAttribute('aria-label', L[k]));
   $('reload').onclick = (e) => { e.preventDefault(); chrome.runtime.reload(); };
   document.querySelectorAll('[data-ph]').forEach((e) => { e.placeholder = L[e.dataset.ph]; });
   const cur = current();
@@ -153,15 +158,18 @@ function render() {
     $('g_' + g).innerHTML = keys.map((k) => { const [t, d0] = L.toggles[k], d = k === 'lists' && lstN ? `${d0} (${L.lstInfo(lstN, new Date(lstT).toLocaleDateString())})` : d0;
       return `<label class="row"><span><b>${t}</b><small>${d}</small></span><input type="checkbox" data-k="${k}" ${s[k] ? 'checked' : ''}></label>`; }).join('');
   }
+  $('g_guard').closest('details').style.display = navigator.userAgent.includes('Firefox/') ? 'none' : '';
   $('on').checked = s.on;
   $('gram').value = s.gram; $('gcpu').value = s.gcpu; $('gramv').textContent = s.gram + ' GB'; $('gcpuv').textContent = s.gcpu + '%';
   $('mins').value = +(s.secs / U[s.unit]).toFixed(2);
   opts('unit', Object.entries(L.units), s.unit);
   $('wl').value = s.whitelist.join('\n');
   $('sl').value = s.sleepList.join('\n');
+  $('ps').value = (s.pausedSites || []).join('\n');
   opts('lang', [['system', L.system], ['es', 'Español'], ['en', 'English']], s.lang);
   opts('theme', [['system', L.system], ['light', L.light], ['dark', L.dark]], s.theme);
   tips(lang === 'es' ? 1 : 2);
+  paintSite();
   stats();
 }
 
@@ -202,8 +210,27 @@ $('gram').oninput = (e) => { $('gramv').textContent = e.target.value + ' GB'; };
 $('gcpu').oninput = (e) => { $('gcpuv').textContent = e.target.value + '%'; };
 $('wl').onchange = (e) => { s.whitelist = lines(e.target.value); save(); };
 $('sl').onchange = (e) => { s.sleepList = lines(e.target.value); save(); };
+$('ps').onchange = (e) => { s.pausedSites = lines(e.target.value); save(); };
 $('lang').onchange = (e) => { s.lang = e.target.value; save(); render(); };
 $('theme').onchange = (e) => { s.theme = e.target.value; save(); render(); };
+
+let tabId = null, siteHost = '';
+const hostPaused = (h) => (s.pausedSites || []).some((p) => h === p || h.endsWith('.' + p));
+function paintSite() {
+  $('siteCard').hidden = !siteHost || !s;
+  if (!siteHost || !s) return;
+  $('siteName').textContent = L.siteIn(siteHost);
+  $('siteOn').checked = !hostPaused(siteHost);
+}
+$('siteOn').onchange = (e) => {
+  if (e.target.checked) s.pausedSites = (s.pausedSites || []).filter((p) => !(siteHost === p || siteHost.endsWith('.' + p)));
+  else if (!hostPaused(siteHost)) s.pausedSites = [...(s.pausedSites || []), siteHost];
+  save(); render();
+  setTimeout(() => chrome.tabs.reload(tabId), 700);
+};
+chrome.tabs.query({ active: true, currentWindow: true }).then(([t]) => {
+  try { const u = new URL(t.url); if (/^https?:$/.test(u.protocol)) { siteHost = u.hostname; tabId = t.id; paintSite(); } } catch {}
+});
 
 Promise.all([chrome.storage.local.get(['s', 'upd', 'lstN', 'lstT']), detect()]).then(([r, b]) => {
   browser = b;
