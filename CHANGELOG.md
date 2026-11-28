@@ -1,4 +1,7 @@
 # Changelog
+## 1.0.4
+### Arreglos
+- **Hiber por sitio**: al apagar Hiber en una página, a veces la pestaña se recargaba antes de que las reglas estuvieran aplicadas y el sitio seguía detectando el bloqueador. Ahora el popup espera a que las reglas estén listas para recargar, y la excepción del sitio se agrega primero.
 
 ## 1.0.3
 

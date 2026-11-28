@@ -225,8 +225,9 @@ function paintSite() {
 $('siteOn').onchange = (e) => {
   if (e.target.checked) s.pausedSites = (s.pausedSites || []).filter((p) => !(siteHost === p || siteHost.endsWith('.' + p)));
   else if (!hostPaused(siteHost)) s.pausedSites = [...(s.pausedSites || []), siteHost];
-  save(); render();
-  setTimeout(() => chrome.tabs.reload(tabId), 700);
+  render();
+  // Recargar solo cuando las reglas ya están aplicadas (antes era un temporizador y la pestaña a veces cargaba con los bloqueos viejos).
+  save().then(() => chrome.runtime.sendMessage('rules')).catch(() => {}).then(() => chrome.tabs.reload(tabId));
 };
 chrome.tabs.query({ active: true, currentWindow: true }).then(([t]) => {
   try { const u = new URL(t.url); if (/^https?:$/.test(u.protocol)) { siteHost = u.hostname; tabId = t.id; paintSite(); } } catch {}

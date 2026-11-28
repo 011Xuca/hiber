@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Hiber",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "default_locale": "en",
   "description": "__MSG_desc__",
   "icons": {

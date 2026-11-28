@@ -81,6 +81,9 @@ async function applyRulesNow() {
   const s = await get();
   const add = [];
   if (s.on) {
+    // Sitios apagados primero: si se recarga la pestaña a mitad de la actualización, la excepción ya está y el sitio no ve bloqueos.
+    (s.pausedSites || []).filter(validHost).slice(0, SITE_IDS.length).forEach((h, i) => add.push({ id: SITE_IDS[i], priority: 3, action: { type: 'allowAllRequests' },
+      condition: { requestDomains: [h], resourceTypes: ['main_frame', 'sub_frame'] } }));
     if (s.trackers) add.push({ id: 1, action: { type: 'block' },
       condition: { requestDomains: TRACKERS, resourceTypes: ['script', 'image', 'xmlhttprequest', 'sub_frame', 'ping', 'other'] } });
     // YouTube detecta bloqueadores si ad_status.js no carga y pausa el video: se le devuelve un archivo falso (prioridad 2: gana a la regla de bloqueo).
@@ -110,8 +113,6 @@ async function applyRulesNow() {
       { header: 'sec-ch-ua-platform-version', operation: 'set', value: '"14.0.0"' },
       { header: 'sec-ch-ua-model', operation: 'set', value: '"Pixel 8"' }] },
       condition: { resourceTypes: ['main_frame', 'sub_frame', 'xmlhttprequest'] } });
-    (s.pausedSites || []).filter(validHost).slice(0, SITE_IDS.length).forEach((h, i) => add.push({ id: SITE_IDS[i], priority: 3, action: { type: 'allowAllRequests' },
-      condition: { requestDomains: [h], resourceTypes: ['main_frame', 'sub_frame'] } }));
   }
   // De a una: updateDynamicRules es todo o nada, y una regla rechazada (p. ej. un regex que este navegador no acepta) apagaba todas.
   const dnr = chrome.declarativeNetRequest;
@@ -189,6 +190,7 @@ chrome.alarms.onAlarm.addListener((a) => (a.name === 'sweep' ? sweep(false) : a.
 chrome.storage.onChanged.addListener((c) => c.s && applyRules());
 chrome.runtime.onMessage.addListener((m, _, reply) => {
   if (m === 'sweep') { sweep(true).then(reply); return true; }
+  if (m === 'rules') { applyRules().then(() => reply(true)); return true; } // el popup espera esto antes de recargar la pestaña
   if (m && typeof m.pauseSite === 'string' && validHost(m.pauseSite)) {
     (async () => {
       const s = await get(), h = m.pauseSite.toLowerCase();
